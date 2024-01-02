@@ -1,0 +1,8 @@
+*.o
+*.a
+.deps
+.libs
+test*.log
+*.trs
+
+awa5

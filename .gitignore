@@ -1,0 +1,15 @@
+*~
+\#*\#
+Makefile
+Makefile.in
+TAGS
+
+/configure
+/config.h.in
+/config.h
+/aclocal.m4
+/autom4te.cache/
+/build-aux/
+/config.log
+/config.status
+/stamp-h1
