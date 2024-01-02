@@ -11,6 +11,7 @@ AM_INIT_AUTOMAKE([foreign tar-pax])
 AM_SILENT_RULES([yes])
 
 AC_PROG_CC
+AC_PROG_RANLIB
 
 AC_ARG_ENABLE([debug],
   [AS_HELP_STRING([--enable-debug], [enable facilities to improve debugging])])
