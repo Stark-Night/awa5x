@@ -1,6 +1,8 @@
-bin_PROGRAMS = awa5
+bin_PROGRAMS = awa5 awa5c
 
 awa5_SOURCES = awa5.c
+
+awa5c_SOURCES = awa5c.c
 
 .PHONY: check-syntax
 check-syntax:
