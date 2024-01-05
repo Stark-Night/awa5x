@@ -3,6 +3,7 @@ check_PROGRAMS = test_utf8 test_opcodes
 noinst_LIBRARIES = libutf8.a libopcodes.a
 
 awa5_SOURCES = awa5.c
+awa5_LDADD = libopcodes.a
 
 awa5c_SOURCES = awa5c.c
 awa5c_LDADD = libutf8.a libopcodes.a

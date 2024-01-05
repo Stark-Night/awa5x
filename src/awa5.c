@@ -10,6 +10,8 @@
 #include <stdint.h>
 #include <arpa/inet.h>
 
+#include "opcodes.h"
+
 struct Header {
      int8_t magic[8];
      uint32_t label_num[2];
@@ -17,6 +19,13 @@ struct Header {
      uint32_t code_size;
      uint32_t extra_flags;
      uint32_t cursor;
+};
+
+struct Program {
+     int8_t *code;
+     uint32_t counter;
+     int8_t opcode;
+     int8_t parameter;
 };
 
 int
@@ -106,6 +115,26 @@ main(int argc, char *argv[]) {
                close(input_fd);
                return 1;
           }
+     }
+
+     struct Program program = { 0 };
+     program.code = input_mmap + file_header.cursor;
+
+     while (program.counter < file_header.code_size) {
+          program.opcode = ((uint8_t)program.code[program.counter]) % 32;
+          if (0 != opcode_has_parameter(program.opcode)) {
+               program.counter = program.counter + 1;
+
+               program.parameter = program.code[program.counter];
+          }
+
+          if (0 != opcode_has_parameter(program.opcode)) {
+               fprintf(stdout, "%s %d\n", opcode_name(program.opcode), program.parameter);
+          } else {
+               fprintf(stdout, "%s\n", opcode_name(program.opcode));
+          }
+
+          program.counter = program.counter + 1;
      }
 
      munmap(input_mmap, input_info.st_size);
