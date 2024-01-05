@@ -81,6 +81,33 @@ main(int argc, char *argv[]) {
      file_header.extra_flags = ntohl(((uint32_t *)(input_mmap + file_header.cursor))[1]);
      file_header.cursor = file_header.cursor + (2 * sizeof(uint32_t));
 
+     // verify header integerity.
+     int8_t check_magic[8] = { 0x00, 0x41, 0x57, 0x41, 0x35, 0x30, 0x0D, 0x0A };
+     if (0 != memcmp(check_magic, file_header.magic, 8)) {
+          fprintf(stderr, "malformed file\n");
+          munmap(input_mmap, input_info.st_size);
+          close(input_fd);
+          return 1;
+     }
+
+     if (file_header.label_num[0] != file_header.label_num[1]
+          || 256 <= file_header.label_num[0]
+          || 256 <= file_header.label_num[1]) {
+          fprintf(stderr, "malformed file\n");
+          munmap(input_mmap, input_info.st_size);
+          close(input_fd);
+          return 1;
+     }
+
+     for (int i=0; i<256; ++i) {
+          if (file_header.labels[i] > file_header.code_size) {
+               fprintf(stderr, "malformed file\n");
+               munmap(input_mmap, input_info.st_size);
+               close(input_fd);
+               return 1;
+          }
+     }
+
      munmap(input_mmap, input_info.st_size);
      close(input_fd);
 
