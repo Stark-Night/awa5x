@@ -1,6 +1,7 @@
 #include "config.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -128,10 +129,28 @@ main(int argc, char *argv[]) {
                program.parameter = program.code[program.counter];
           }
 
-          if (0 != opcode_has_parameter(program.opcode)) {
-               fprintf(stdout, "%s %d\n", opcode_name(program.opcode), program.parameter);
-          } else {
-               fprintf(stdout, "%s\n", opcode_name(program.opcode));
+          switch (program.opcode) {
+          case NOP:
+               // do nothing
+               break;
+          case LBL:
+               // this opcode should never be found since labels are
+               // compiled in the header.
+               // let's fail as hard as we can.
+               abort();
+               break;
+          default:
+               if (0 != opcode_has_parameter(program.opcode)) {
+                    fprintf(stdout,
+                            "%s %d\n",
+                            opcode_name(program.opcode),
+                            program.parameter);
+               } else {
+                    fprintf(stdout,
+                            "%s\n",
+                            opcode_name(program.opcode));
+               }
+               break;
           }
 
           program.counter = program.counter + 1;
