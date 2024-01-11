@@ -123,8 +123,16 @@ main(int argc, char *argv[]) {
 
      while (program.counter < file_header.code_size) {
           program.opcode = ((uint8_t)program.code[program.counter]) % 32;
+
           if (0 != opcode_has_parameter(program.opcode)) {
                program.counter = program.counter + 1;
+
+               if (program.count >= file_header.code_size) {
+                    fprintf(stderr,
+                            "%s: not enough arguments\n",
+                            opcode_name(program.opcode));
+                    continue;
+               }
 
                program.parameter = program.code[program.counter];
           }
@@ -141,12 +149,12 @@ main(int argc, char *argv[]) {
                break;
           default:
                if (0 != opcode_has_parameter(program.opcode)) {
-                    fprintf(stdout,
+                    fprintf(stderr,
                             "%s %d\n",
                             opcode_name(program.opcode),
                             program.parameter);
                } else {
-                    fprintf(stdout,
+                    fprintf(stderr,
                             "%s\n",
                             opcode_name(program.opcode));
                }
