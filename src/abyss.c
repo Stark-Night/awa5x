@@ -60,6 +60,8 @@ abyss_drop(struct Abyss abyss) {
      abyss.bubbles = NULL;
      abyss.size = 0;
      abyss.used = 0;
+     abyss.head = NULL;
+     abyss.free = NULL;
 
      return abyss;
 }
