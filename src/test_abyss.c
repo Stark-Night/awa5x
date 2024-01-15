@@ -77,5 +77,23 @@ main(int argc, char *argv[]) {
 
      abyss = abyss_drop(abyss);
 
+     bubble.value = 0;
+     abyss = abyss_push(abyss, bubble);
+     bubble.value = 1;
+     abyss = abyss_push(abyss, bubble);
+     abyss = abyss_merge(abyss);
+     abort_when(NULL == abyss.head->head);
+     abort_when(1 != abyss.head->head->value);
+
+     bubble.value = 2;
+     abyss = abyss_push(abyss, bubble);
+     bubble.value = 3;
+     abyss = abyss_push(abyss, bubble);
+     abyss = abyss_merge(abyss);
+     abyss = abyss_merge(abyss);
+     abort_when(3 != abyss.head->head->value);
+
+     abyss = abyss_drop(abyss);
+
      return 0;
 }

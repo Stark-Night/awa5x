@@ -38,7 +38,13 @@ abyss_move(struct Abyss abyss, uint8_t steps);
 struct Abyss
 abyss_join(struct Abyss abyss, uint8_t size);
 
+struct Abyss
+abyss_merge(struct Abyss abyss);
+
 struct Bubble
 bubble_wrap(int8_t value);
+
+int
+bubble_double(struct Bubble bubble);
 
 #endif

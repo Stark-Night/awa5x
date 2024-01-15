@@ -186,10 +186,75 @@ abyss_join(struct Abyss abyss, uint8_t size) {
      return abyss;
 }
 
+struct Abyss
+abyss_merge(struct Abyss abyss) {
+     if (NULL == abyss.head || NULL == abyss.head->next) {
+          return abyss;
+     }
+
+     struct Bubble *b1 = abyss.head;
+     abyss.head = b1->next;
+     struct Bubble *b2 = abyss.head;
+     abyss.head = b2->next;
+
+     if (0 == bubble_double(*b1) && 0 == bubble_double(*b2)) {
+          struct Bubble *bm = abyss.free;
+          abyss.free = abyss.free->next;
+
+          bm->head = b1;
+          bm->head->next = b2;
+          b2->next = NULL;
+
+          bm->next = abyss.head;
+          abyss.head = bm;
+     } else if (0 == bubble_double(*b1)) {
+          struct Bubble *bm = abyss.free;
+          abyss.free = abyss.free->next;
+
+          bm->head = b1;
+          b1->next = b2->head;
+          bm->next = abyss.head;
+          abyss.head = bm;
+
+          b2->next = abyss.free;
+          abyss.free = b2;
+     } else if (0 == bubble_double(*b2)) {
+          struct Bubble *cursor = b1->head;
+          while (NULL != cursor->next) {
+               cursor = cursor->next;
+          }
+          cursor->next = b2;
+          b1->next = abyss.head;
+          abyss.head = b1;
+
+          b2->next = abyss.free;
+          abyss.free = b2;
+     } else {
+          struct Bubble *cursor = b1->head;
+          while (NULL != cursor->next) {
+               cursor = cursor->next;
+          }
+          cursor->next = b2->head;
+
+          b1->next = abyss.head;
+          abyss.head = b1;
+
+          b2->next = abyss.free;
+          abyss.free = b2;
+     }
+
+     return abyss;
+}
+
 struct Bubble
 bubble_wrap(int8_t value) {
      struct Bubble bubble = { 0 };
      bubble.value = value;
 
      return bubble;
+}
+
+int
+bubble_double(struct Bubble bubble) {
+     return (NULL != bubble.head);
 }
