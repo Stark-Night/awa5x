@@ -112,6 +112,36 @@ abyss_top(struct Abyss abyss) {
      return bubble;
 }
 
+struct Abyss
+abyss_move(struct Abyss abyss, uint8_t steps) {
+     // the uint8_t type allows a step of 255 when using a parameter
+     // from the interpeter
+     if (0 == steps) {
+          return abyss;
+     }
+
+     struct Bubble *bubble = abyss.head;
+     if (NULL == bubble || NULL == bubble->next) {
+          return abyss;
+     }
+
+     abyss.head = bubble->next;
+
+     struct Bubble *prev = NULL;
+     struct Bubble *next = bubble->next;
+     for (int i=steps; i>=0; --i) {
+          if (NULL == next || 0 >= i) {
+               prev->next = bubble;
+               break;
+          }
+
+          prev = next;
+          next = next->next;
+     }
+
+     return abyss;
+}
+
 struct Bubble
 bubble_wrap(int8_t value) {
      struct Bubble bubble = { 0 };

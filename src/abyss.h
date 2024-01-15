@@ -32,6 +32,9 @@ abyss_pop(struct Abyss abyss);
 struct Bubble
 abyss_top(struct Abyss abyss);
 
+struct Abyss
+abyss_move(struct Abyss abyss, uint8_t steps);
+
 struct Bubble
 bubble_wrap(int8_t value);
 
