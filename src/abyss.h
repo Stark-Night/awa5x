@@ -5,12 +5,16 @@
 
 struct Bubble {
      int8_t value;
+     struct Bubble *head;
+     struct Bubble *next;
 };
 
 struct Abyss {
      struct Bubble *bubbles;
      int size;
-     int top;
+     int used;
+     struct Bubble *head;
+     struct Bubble *free;
 };
 
 struct Abyss
