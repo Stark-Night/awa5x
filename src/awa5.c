@@ -127,7 +127,7 @@ main(int argc, char *argv[]) {
           if (0 != opcode_has_parameter(program.opcode)) {
                program.counter = program.counter + 1;
 
-               if (program.count >= file_header.code_size) {
+               if (program.counter >= file_header.code_size) {
                     fprintf(stderr,
                             "%s: not enough arguments\n",
                             opcode_name(program.opcode));
