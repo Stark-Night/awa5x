@@ -65,6 +65,16 @@ main(int argc, char *argv[]) {
      abort_when(NULL != abyss.head->next);
      abort_when(abyss.bubbles + 0 != abyss.head->head->next);
 
+     bubble.value = 3;
+     abyss = abyss_push(abyss, bubble);
+     abyss = abyss_join(abyss, 2);
+     abort_when(3 != abyss.head->head->value);
+     abort_when(NULL == abyss.head->head->next);
+     abort_when(NULL == abyss.head->head->next->head);
+     abyss = abyss_pop(abyss);
+     abort_when(3 != abyss.head->value);
+     abort_when(NULL == abyss.head->next->head);
+
      abyss = abyss_drop(abyss);
 
      return 0;

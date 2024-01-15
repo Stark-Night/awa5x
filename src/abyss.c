@@ -77,6 +77,7 @@ abyss_push(struct Abyss abyss, struct Bubble bubble) {
 
      b->value = bubble.value;
      b->next = abyss.head;
+     b->head = NULL;
      abyss.head = b;
 
      abyss.used = abyss.used + 1;
@@ -93,6 +94,19 @@ abyss_pop(struct Abyss abyss) {
 
      struct Bubble *bubble = abyss.head;
      abyss.head = bubble->next;
+
+     if (NULL != bubble->head) {
+          struct Bubble *head = bubble->head;
+          struct Bubble *cursor = head;
+          while (NULL != cursor->next) {
+               cursor = cursor->next;
+          }
+
+          cursor->next = abyss.head;
+          abyss.head = head;
+     }
+
+     bubble->head = NULL;
      bubble->next = abyss.free;
      abyss.free = bubble;
 
@@ -159,9 +173,12 @@ abyss_join(struct Abyss abyss, uint8_t size) {
      bubble->head = abyss.head;
      abyss.head = abyss.head->next;
 
+     struct Bubble *cursor = abyss.head;
      for (int i=0; i<size && NULL!=abyss.head; ++i) {
+          cursor = abyss.head;
           abyss.head = abyss.head->next;
      }
+     cursor->next = NULL;
 
      bubble->next = abyss.head;
      abyss.head = bubble;
