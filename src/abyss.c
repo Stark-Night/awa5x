@@ -144,6 +144,31 @@ abyss_move(struct Abyss abyss, uint8_t steps) {
      return abyss;
 }
 
+struct Abyss
+abyss_join(struct Abyss abyss, uint8_t size) {
+     // the uint8_t type allows a step of 255 when using a parameter
+     // from the interpeter
+     if (0 == size) {
+          return abyss;
+     }
+
+     struct Bubble *bubble = abyss.free;
+     abyss.free = abyss.free->next;
+     abyss.used = abyss.used + 1;
+
+     bubble->head = abyss.head;
+     abyss.head = abyss.head->next;
+
+     for (int i=0; i<size && NULL!=abyss.head; ++i) {
+          abyss.head = abyss.head->next;
+     }
+
+     bubble->next = abyss.head;
+     abyss.head = bubble;
+
+     return abyss;
+}
+
 struct Bubble
 bubble_wrap(int8_t value) {
      struct Bubble bubble = { 0 };
