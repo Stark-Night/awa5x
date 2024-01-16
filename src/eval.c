@@ -31,7 +31,7 @@ prn_bubble(struct Bubble bubble) {
 static enum EvalCode
 pr1_bubble(struct Bubble bubble) {
      if (0 == bubble_double(bubble)) {
-          fprintf(stdout, "%d", bubble.value);
+          fprintf(stdout, "%d ", bubble.value);
 
           return EVAL_OK;
      }
