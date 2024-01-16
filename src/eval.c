@@ -112,7 +112,7 @@ eval_red(struct Abyss abyss, int8_t parameter) {
      result.code = EVAL_OK;
      result.state = abyss;
 
-     ssize_t bytes = getline(&(abyss.exbuffer), &(abyss.exsize), stdin);
+     ssize_t bytes = getline(&(result.state.exbuffer), &(result.state.exsize), stdin);
      if (0 > bytes) {
           // errno should probably be checked here but whatever, users
           // should send empty strings instead of end-of-file
@@ -127,14 +127,14 @@ eval_red(struct Abyss abyss, int8_t parameter) {
      while (0 == valid) {
           // the whole thing works only in single bytes (check the alphabet)
           for (ssize_t i=0; i<bytes; ++i) {
-               int8_t byte = abyss.exbuffer[i];
+               int8_t byte = result.state.exbuffer[i];
 
                for (int8_t c=0; c<NALNUM; ++c) {
                     if (ALPHABET[c] != byte) {
                          continue;
                     }
 
-                    abyss.exbuffer[i] = c;
+                    result.state.exbuffer[i] = c;
                     valid = valid + 1;
                }
           }
@@ -146,7 +146,7 @@ eval_red(struct Abyss abyss, int8_t parameter) {
                // value is given
                fprintf(stderr, "input out of range\n");
                valid = 0;
-               bytes = getline(&(abyss.exbuffer), &(abyss.exsize), stdin);
+               bytes = getline(&(result.state.exbuffer), &(result.state.exsize), stdin);
                if (0 > bytes) {
                     result.code = EVAL_ERROR;
                     return result;
@@ -157,7 +157,7 @@ eval_red(struct Abyss abyss, int8_t parameter) {
 
      struct Bubble bubble = { 0 };
      for (ssize_t i=0; i<bytes; ++i) {
-          bubble = bubble_wrap(abyss.exbuffer[i]);
+          bubble = bubble_wrap(result.state.exbuffer[i]);
           result.state = abyss_push(result.state, bubble);
      }
      result.code = EVAL_NEW_STATE;
@@ -173,7 +173,7 @@ eval_r3d(struct Abyss abyss, int8_t parameter) {
      result.code = EVAL_OK;
      result.state = abyss;
 
-     ssize_t bytes = getline(&(abyss.exbuffer), &(abyss.exsize), stdin);
+     ssize_t bytes = getline(&(result.state.exbuffer), &(result.state.exsize), stdin);
      if (0 > bytes) {
           result.code = EVAL_ERROR;
           return result;
@@ -183,20 +183,20 @@ eval_r3d(struct Abyss abyss, int8_t parameter) {
      // strtol is not really the best method for a number of reasons,
      // but it's good enough™ for us
      char *tail = NULL;
-     long int cnum = strtol(abyss.exbuffer, &tail, 10);
+     long int cnum = strtol(result.state.exbuffer, &tail, 10);
 
      // again we loop until a valid input
      while (NULL != tail && '\0' != tail[0] && (INT8_MIN > cnum || INT8_MAX < cnum)) {
           fprintf(stderr, "input out of range\n");
 
-          bytes = getline(&(abyss.exbuffer), &(abyss.exsize), stdin);
+          bytes = getline(&(result.state.exbuffer), &(result.state.exsize), stdin);
           if (0 > bytes) {
                result.code = EVAL_ERROR;
                return result;
           }
           bytes = bytes - 1;
 
-          cnum = strtol(abyss.exbuffer, &tail, 10);
+          cnum = strtol(result.state.exbuffer, &tail, 10);
      }
 
      struct Bubble bubble = bubble_wrap((int8_t)cnum);
