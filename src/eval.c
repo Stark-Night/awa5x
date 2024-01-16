@@ -1,6 +1,8 @@
 #include "config.h"
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
 #include "opcodes.h"
 #include "eval.h"
 #include "abyss.h"
@@ -122,6 +124,59 @@ eval_red(struct Abyss abyss, int8_t parameter) {
      }
      result.code = EVAL_NEW_STATE;
      result.state = abyss_join(result.state, (int8_t)bytes); // it's fine to truncate
+
+     return result;
+}
+
+struct EvalResult
+eval_r3d(struct Abyss abyss, int8_t parameter) {
+     // this is mostly the same as eval_red.
+     struct EvalResult result = { 0 };
+     result.code = EVAL_OK;
+     result.state = abyss;
+
+     ssize_t bytes = getline(&(abyss.exbuffer), &(abyss.exsize), stdin);
+     if (0 > bytes) {
+          result.code = EVAL_ERROR;
+          return result;
+     }
+     bytes = bytes - 1;
+
+     // strtol is not really the best method for a number of reasons,
+     // but it's good enough™ for us
+     char *tail = NULL;
+     long int cnum = strtol(abyss.exbuffer, &tail, 10);
+
+     // again we loop until a valid input
+     while (NULL != tail && '\0' != tail[0] && (INT8_MIN > cnum || INT8_MAX < cnum)) {
+          fprintf(stderr, "input out of range\n");
+
+          bytes = getline(&(abyss.exbuffer), &(abyss.exsize), stdin);
+          if (0 > bytes) {
+               result.code = EVAL_ERROR;
+               return result;
+          }
+          bytes = bytes - 1;
+
+          cnum = strtol(abyss.exbuffer, &tail, 10);
+     }
+
+     struct Bubble bubble = bubble_wrap((int8_t)cnum);
+     result.code = EVAL_NEW_STATE;
+     result.state = abyss_push(result.state, bubble);
+
+     return result;
+}
+
+struct EvalResult
+eval_blo(struct Abyss abyss, int8_t parameter) {
+     struct EvalResult result = { 0 };
+     result.code = EVAL_OK;
+     result.state = abyss;
+
+     struct Bubble bubble = bubble_wrap(parameter);
+     result.code = EVAL_NEW_STATE;
+     result.state = abyss_push(result.state, bubble);
 
      return result;
 }

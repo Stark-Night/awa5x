@@ -21,4 +21,10 @@ eval_pr1(struct Abyss abyss, int8_t parameter);
 struct EvalResult
 eval_red(struct Abyss abyss, int8_t parameter);
 
+struct EvalResult
+eval_r3d(struct Abyss abyss, int8_t parameter);
+
+struct EvalResult
+eval_blo(struct Abyss abyss, int8_t parameter);
+
 #endif

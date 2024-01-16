@@ -168,11 +168,21 @@ main(int argc, char *argv[]) {
           case RED:
                program.result = eval_red(program.abyss, program.parameter);
                break;
+          case R3D:
+               program.result = eval_r3d(program.abyss, program.parameter);
+               break;
+          case BLO:
+               program.result = eval_blo(program.abyss, program.parameter);
+               break;
           case LBL:
                // this opcode should never be found since labels are
                // compiled in the header.
                // let's fail as hard as we can.
                abort();
+               break;
+          case TRM:
+               program.result.code = EVAL_OK;
+               program.counter = file_header.code_size;
                break;
           default:
                opcode_error(program.opcode, program.parameter);
