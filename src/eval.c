@@ -16,8 +16,11 @@ free_bubble(struct Abyss abyss, struct Bubble *bubble) {
           return abyss;
      }
 
-     for (struct Bubble *b=bubble->head; NULL!=b; b=b->next) {
-          abyss = free_bubble(abyss, b);
+     struct Bubble *cursor = bubble->head;
+     while (NULL != cursor) {
+          struct Bubble *next = cursor->next;
+          abyss = free_bubble(abyss, cursor);
+          cursor = next;
      }
 
      bubble->next = abyss.free;
