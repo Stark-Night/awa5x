@@ -46,4 +46,18 @@ opcode_name(int8_t opcode);
 int
 opcode_has_parameter(int8_t opcode);
 
+#define opcode_error(opcode, parameter)                 \
+     do {                                               \
+          if (0 != opcode_has_parameter((opcode))) {    \
+               fprintf(stderr,                          \
+                       "%s %d\n",                       \
+                       opcode_name((opcode)),           \
+                       (parameter));                    \
+          } else {                                      \
+               fprintf(stderr,                          \
+                       "%s\n",                          \
+                       opcode_name((opcode)));          \
+          }                                             \
+     } while (0)
+
 #endif

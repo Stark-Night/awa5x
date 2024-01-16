@@ -15,20 +15,6 @@
 #include "abyss.h"
 #include "eval.h"
 
-#define opcode_error(opcode, parameter)                 \
-     do {                                               \
-          if (0 != opcode_has_parameter((opcode))) {    \
-               fprintf(stderr,                          \
-                       "%s %d\n",                       \
-                       opcode_name((opcode)),           \
-                       (parameter));                    \
-          } else {                                      \
-               fprintf(stderr,                          \
-                       "%s\n",                          \
-                       opcode_name((opcode)));          \
-          }                                             \
-     } while (0)
-
 struct Header {
      int8_t magic[8];
      uint32_t label_num[2];
