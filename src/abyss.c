@@ -203,6 +203,7 @@ abyss_merge(struct Abyss abyss) {
      if (0 == bubble_double(*b1) && 0 == bubble_double(*b2)) {
           struct Bubble *bm = abyss.free;
           abyss.free = abyss.free->next;
+          abyss.used = abyss.used + 1;
 
           bm->head = b1;
           bm->head->next = b2;
@@ -213,6 +214,7 @@ abyss_merge(struct Abyss abyss) {
      } else if (0 == bubble_double(*b1)) {
           struct Bubble *bm = abyss.free;
           abyss.free = abyss.free->next;
+          abyss.used = abyss.used + 1;
 
           bm->head = b1;
           b1->next = b2->head;
@@ -221,6 +223,7 @@ abyss_merge(struct Abyss abyss) {
 
           b2->next = abyss.free;
           abyss.free = b2;
+          abyss.used = abyss.used - 1;
      } else if (0 == bubble_double(*b2)) {
           struct Bubble *cursor = b1->head;
           while (NULL != cursor->next) {
@@ -232,6 +235,7 @@ abyss_merge(struct Abyss abyss) {
 
           b2->next = abyss.free;
           abyss.free = b2;
+          abyss.used = abyss.used - 1;
      } else {
           struct Bubble *cursor = b1->head;
           while (NULL != cursor->next) {
@@ -244,6 +248,7 @@ abyss_merge(struct Abyss abyss) {
 
           b2->next = abyss.free;
           abyss.free = b2;
+          abyss.used = abyss.used - 1;
      }
 
      return abyss;
