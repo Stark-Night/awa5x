@@ -30,4 +30,7 @@ eval_blo(struct Abyss abyss, int8_t parameter);
 struct EvalResult
 eval_sbm(struct Abyss abyss, int8_t parameter);
 
+struct EvalResult
+eval_pop(struct Abyss abyss, int8_t parameter);
+
 #endif
