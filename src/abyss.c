@@ -56,6 +56,10 @@ abyss_drop(struct Abyss abyss) {
      if (NULL != abyss.bubbles) {
           free(abyss.bubbles);
      }
+     if (NULL != abyss.exbuffer) {
+          free(abyss.exbuffer);
+          abyss.exbuffer = NULL;
+     }
 
      abyss.bubbles = NULL;
      abyss.size = 0;

@@ -162,6 +162,12 @@ main(int argc, char *argv[]) {
           case PRN:
                program.result = eval_prn(program.abyss, program.parameter);
                break;
+          case PR1:
+               program.result = eval_pr1(program.abyss, program.parameter);
+               break;
+          case RED:
+               program.result = eval_red(program.abyss, program.parameter);
+               break;
           case LBL:
                // this opcode should never be found since labels are
                // compiled in the header.

@@ -15,4 +15,10 @@ struct EvalResult {
 struct EvalResult
 eval_prn(struct Abyss abyss, int8_t parameter);
 
+struct EvalResult
+eval_pr1(struct Abyss abyss, int8_t parameter);
+
+struct EvalResult
+eval_red(struct Abyss abyss, int8_t parameter);
+
 #endif

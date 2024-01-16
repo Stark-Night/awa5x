@@ -15,6 +15,10 @@ struct Abyss {
      int used;
      struct Bubble *head;
      struct Bubble *free;
+
+     // a hack, but we need some kind of cached buffer
+     char *exbuffer;
+     size_t exsize;
 };
 
 struct Abyss
