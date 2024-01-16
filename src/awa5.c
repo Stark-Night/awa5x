@@ -166,6 +166,12 @@ main(int argc, char *argv[]) {
           case POP:
                program.result = eval_pop(program.abyss, program.parameter);
                break;
+          case SRN:
+               program.result = eval_srn(program.abyss, program.parameter);
+               break;
+          case MRG:
+               program.result = eval_mrg(program.abyss, program.parameter);
+               break;
           case LBL:
                // this opcode should never be found since labels are
                // compiled in the header.

@@ -33,4 +33,10 @@ eval_sbm(struct Abyss abyss, int8_t parameter);
 struct EvalResult
 eval_pop(struct Abyss abyss, int8_t parameter);
 
+struct EvalResult
+eval_srn(struct Abyss abyss, int8_t parameter);
+
+struct EvalResult
+eval_mrg(struct Abyss abyss, int8_t parameter);
+
 #endif

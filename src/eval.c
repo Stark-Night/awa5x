@@ -242,3 +242,27 @@ eval_pop(struct Abyss abyss, int8_t parameter) {
 
      return result;
 }
+
+struct EvalResult
+eval_srn(struct Abyss abyss, int8_t parameter) {
+     struct EvalResult result = { 0 };
+     result.code = EVAL_OK;
+     result.state = abyss;
+
+     result.code = EVAL_NEW_STATE;
+     result.state = abyss_join(result.state, parameter);
+
+     return result;
+}
+
+struct EvalResult
+eval_mrg(struct Abyss abyss, int8_t parameter) {
+     struct EvalResult result = { 0 };
+     result.code = EVAL_OK;
+     result.state = abyss;
+
+     result.code = EVAL_NEW_STATE;
+     result.state = abyss_merge(result.state);
+
+     return result;
+}
