@@ -7,6 +7,35 @@
 #include "eval.h"
 #include "abyss.h"
 
+static struct Abyss
+free_bubble(struct Abyss abyss, struct Bubble *bubble) {
+     if (0 == bubble_double(*bubble)) {
+          bubble->next = abyss.free;
+          abyss.free = bubble;
+          abyss.used = abyss.used - 1;
+          return abyss;
+     }
+
+     for (struct Bubble *b=bubble->head; NULL!=b; b=b->next) {
+          abyss = free_bubble(abyss, b);
+     }
+
+     bubble->next = abyss.free;
+     abyss.free = bubble;
+     abyss.used = abyss.used - 1;
+     return abyss;
+}
+
+static struct Abyss
+big_pop(struct Abyss abyss) {
+     struct Bubble *b = abyss.head;
+     abyss.head = b->next;
+
+     abyss = free_bubble(abyss, b);
+
+     return abyss;
+}
+
 static enum EvalCode
 prn_bubble(struct Bubble bubble) {
      if (0 == bubble_double(bubble)) {
@@ -53,6 +82,9 @@ eval_prn(struct Abyss abyss, int8_t parameter) {
      result.code = prn_bubble(top);
      fflush(stdout);
 
+     result.code = EVAL_NEW_STATE;
+     result.state = big_pop(abyss);
+
      return result;
 }
 
@@ -64,6 +96,9 @@ eval_pr1(struct Abyss abyss, int8_t parameter) {
      struct Bubble top = abyss_top(abyss);
      result.code = pr1_bubble(top);
      fflush(stdout);
+
+     result.code = EVAL_NEW_STATE;
+     result.state = big_pop(abyss);
 
      return result;
 }
