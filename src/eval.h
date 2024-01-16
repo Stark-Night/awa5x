@@ -27,4 +27,7 @@ eval_r3d(struct Abyss abyss, int8_t parameter);
 struct EvalResult
 eval_blo(struct Abyss abyss, int8_t parameter);
 
+struct EvalResult
+eval_sbm(struct Abyss abyss, int8_t parameter);
+
 #endif

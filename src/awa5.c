@@ -174,6 +174,9 @@ main(int argc, char *argv[]) {
           case BLO:
                program.result = eval_blo(program.abyss, program.parameter);
                break;
+          case SBM:
+               program.result = eval_sbm(program.abyss, program.parameter);
+               break;
           case LBL:
                // this opcode should never be found since labels are
                // compiled in the header.
