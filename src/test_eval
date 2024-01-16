@@ -17,7 +17,7 @@ cat <<EOF > ./test-eval-src
 ;; test reading
 awa
 
-awa awa awawa awa
+awa awa awawawa
 awa awa awa awawa
 EOF
 ./awa5c ./test-eval-src > ./test-eval-cc

@@ -70,6 +70,7 @@ struct EvalResult
 eval_red(struct Abyss abyss, int8_t parameter) {
      struct EvalResult result = { 0 };
      result.code = EVAL_OK;
+     result.state = abyss;
 
      ssize_t bytes = getline(&(abyss.exbuffer), &(abyss.exsize), stdin);
      if (0 > bytes) {
@@ -93,6 +94,7 @@ eval_red(struct Abyss abyss, int8_t parameter) {
                          continue;
                     }
 
+                    abyss.exbuffer[i] = c;
                     valid = valid + 1;
                }
           }
