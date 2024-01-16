@@ -1,5 +1,5 @@
 bin_PROGRAMS = awa5 awa5c
-check_PROGRAMS = test_utf8 test_opcodes test_abyss test_eval
+check_PROGRAMS = test_utf8 test_opcodes test_abyss
 noinst_LIBRARIES = libutf8.a libopcodes.a libabyss.a libeval.a
 
 awa5_SOURCES = awa5.c
@@ -22,10 +22,7 @@ test_opcodes_LDADD = libopcodes.a
 test_abyss_SOURCES = test_abyss.c
 test_abyss_LDADD = libabyss.a
 
-test_eval_SOURCES = test_eval.c
-test_eval_LDADD = libabyss.a libeval.a
-
-TESTS = $(check_PROGRAMS)
+TESTS = $(check_PROGRAMS) test_eval
 
 .PHONY: check-syntax
 check-syntax:

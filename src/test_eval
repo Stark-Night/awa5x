@@ -1,0 +1,27 @@
+#!/bin/sh
+
+cat <<EOF > ./test-eval-src
+;; test printing
+awa
+
+awa awawa awawa awa awa awa awa awa awa awa awa
+awa awa awa awawa
+EOF
+./awa5c ./test-eval-src > ./test-eval-cc
+[ $? != 0 ] && echo 'compile test 1' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
+out=`./awa5 test-eval-cc`
+[ "x$out" != 'xA' ] && echo 'run test 1' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
+rm -f test-eval-src test-eval-cc
+
+cat <<EOF > ./test-eval-src
+;; test reading
+awa
+
+awa awa awawa awa
+awa awa awa awawa
+EOF
+./awa5c ./test-eval-src > ./test-eval-cc
+[ $? != 0 ] && echo 'compile test 2' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
+out=`echo 'AWA' | ./awa5 test-eval-cc`
+[ "x$out" != 'xAWA' ] && echo 'run test 2' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
+rm -f test-eval-src test-eval-cc
