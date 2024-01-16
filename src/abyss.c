@@ -121,10 +121,9 @@ abyss_top(struct Abyss abyss) {
           abort(); // same as above
      }
 
-     struct Bubble bubble = { 0 };
      struct Bubble *top = abyss.head;
+     struct Bubble bubble = *top;
 
-     bubble.value = top->value;
      return bubble;
 }
 

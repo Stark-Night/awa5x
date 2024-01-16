@@ -11,3 +11,4 @@ awa5c
 test_utf8
 test_opcodes
 test_abyss
+test_eval

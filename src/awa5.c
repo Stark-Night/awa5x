@@ -12,6 +12,22 @@
 #include <arpa/inet.h>
 
 #include "opcodes.h"
+#include "abyss.h"
+#include "eval.h"
+
+#define opcode_error(opcode, parameter)                 \
+     do {                                               \
+          if (0 != opcode_has_parameter((opcode))) {    \
+               fprintf(stderr,                          \
+                       "%s %d\n",                       \
+                       opcode_name((opcode)),           \
+                       (parameter));                    \
+          } else {                                      \
+               fprintf(stderr,                          \
+                       "%s\n",                          \
+                       opcode_name((opcode)));          \
+          }                                             \
+     } while (0)
 
 struct Header {
      int8_t magic[8];
@@ -27,6 +43,8 @@ struct Program {
      uint32_t counter;
      int8_t opcode;
      int8_t parameter;
+     struct Abyss abyss;
+     struct EvalResult result;
 };
 
 int
@@ -141,6 +159,9 @@ main(int argc, char *argv[]) {
           case NOP:
                // do nothing
                break;
+          case PRN:
+               program.result = eval_prn(program.abyss, program.parameter);
+               break;
           case LBL:
                // this opcode should never be found since labels are
                // compiled in the header.
@@ -148,22 +169,23 @@ main(int argc, char *argv[]) {
                abort();
                break;
           default:
-               if (0 != opcode_has_parameter(program.opcode)) {
-                    fprintf(stderr,
-                            "%s %d\n",
-                            opcode_name(program.opcode),
-                            program.parameter);
-               } else {
-                    fprintf(stderr,
-                            "%s\n",
-                            opcode_name(program.opcode));
-               }
+               opcode_error(program.opcode, program.parameter);
                break;
+          }
+
+          if (EVAL_NEW_STATE == program.result.code) {
+               program.abyss = program.result.state;
+          }
+
+          if (EVAL_ERROR == program.result.code) {
+               opcode_error(program.opcode, program.parameter);
+               program.counter = file_header.code_size;
           }
 
           program.counter = program.counter + 1;
      }
 
+     program.abyss = abyss_drop(program.abyss);
      munmap(input_mmap, input_info.st_size);
      close(input_fd);
 
