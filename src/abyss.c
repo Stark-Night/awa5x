@@ -4,6 +4,44 @@
 #include <stdlib.h>
 #include "abyss.h"
 
+struct Page {
+     struct Bubble *bubble;
+     struct Abyss state;
+};
+
+static struct Page
+take_free_bubble(struct Abyss abyss) {
+     struct Page page = { 0 };
+     page.state = abyss;
+
+     if (page.state.used + 2 >= page.state.size) {
+          page.state = abyss_expand(page.state);
+     }
+
+     page.bubble = page.state.free;
+
+     page.state.free = page.bubble->next;
+     page.state.used = page.state.used + 1;
+
+     page.bubble->head = NULL;
+     page.bubble->next = NULL;
+
+     return page;
+}
+
+static struct Page
+give_free_bubble(struct Abyss abyss, struct Bubble *bubble) {
+     struct Page page = { 0 };
+     page.bubble = bubble;
+     page.state = abyss;
+
+     page.bubble->next = page.state.free;
+     page.state.free = page.bubble;
+     page.state.used = page.state.used - 1;
+
+     return page;
+}
+
 struct Abyss
 abyss_expand(struct Abyss abyss) {
      if (NULL == abyss.bubbles) {
@@ -72,21 +110,14 @@ abyss_drop(struct Abyss abyss) {
 
 struct Abyss
 abyss_push(struct Abyss abyss, struct Bubble bubble) {
-     if (abyss.used + 2 >= abyss.size) {
-          abyss = abyss_expand(abyss);
-     }
+     struct Page page = take_free_bubble(abyss);
 
-     struct Bubble *b = abyss.free;
-     abyss.free = b->next;
-
+     struct Bubble *b = page.bubble;
      b->value = bubble.value;
      b->next = abyss.head;
-     b->head = NULL;
-     abyss.head = b;
+     page.state.head = b;
 
-     abyss.used = abyss.used + 1;
-
-     return abyss;
+     return page.state;
 }
 
 struct Abyss
@@ -98,25 +129,22 @@ abyss_pop(struct Abyss abyss) {
 
      struct Bubble *bubble = abyss.head;
      abyss.head = bubble->next;
+     struct Page page = give_free_bubble(abyss, bubble);
 
-     if (NULL != bubble->head) {
-          struct Bubble *head = bubble->head;
+     if (NULL != page.bubble->head) {
+          struct Bubble *head = page.bubble->head;
           struct Bubble *cursor = head;
           while (NULL != cursor->next) {
                cursor = cursor->next;
           }
 
-          cursor->next = abyss.head;
-          abyss.head = head;
+          cursor->next = page.state.head;
+          page.state.head = head;
      }
 
-     bubble->head = NULL;
-     bubble->next = abyss.free;
-     abyss.free = bubble;
+     page.bubble->head = NULL;
 
-     abyss.used = abyss.used - 1;
-
-     return abyss;
+     return page.state;
 }
 
 struct Bubble
@@ -174,35 +202,41 @@ abyss_move(struct Abyss abyss, uint8_t steps) {
 
 struct Abyss
 abyss_join(struct Abyss abyss, uint8_t size) {
+     if (0 >= abyss.used) {
+          abort(); // same as above
+     }
+
      // the uint8_t type allows a step of 255 when using a parameter
      // from the interpeter
      if (0 == size) {
           return abyss;
      }
 
-     struct Bubble *bubble = abyss.free;
-     abyss.free = abyss.free->next;
-     abyss.used = abyss.used + 1;
+     struct Page page = take_free_bubble(abyss);
 
-     bubble->head = abyss.head;
-     abyss.head = abyss.head->next;
+     page.bubble->head = page.state.head;
+     page.state.head = page.state.head->next;
 
-     struct Bubble *cursor = abyss.head;
-     for (int i=0; i<size && NULL!=abyss.head; ++i) {
-          cursor = abyss.head;
-          abyss.head = abyss.head->next;
+     struct Bubble *cursor = page.state.head;
+     for (int i=0; i<size && NULL!=page.state.head; ++i) {
+          cursor = page.state.head;
+          page.state.head = page.state.head->next;
      }
      cursor->next = NULL;
 
-     bubble->next = abyss.head;
-     abyss.head = bubble;
+     page.bubble->next = page.state.head;
+     page.state.head = page.bubble;
 
-     return abyss;
+     return page.state;
 }
 
 struct Abyss
 abyss_merge(struct Abyss abyss) {
-     if (NULL == abyss.head || NULL == abyss.head->next) {
+     if (0 >= abyss.used) {
+          abort(); // same as above
+     }
+
+     if (NULL == abyss.head->next) {
           return abyss;
      }
 
@@ -211,42 +245,37 @@ abyss_merge(struct Abyss abyss) {
      struct Bubble *b2 = abyss.head;
      abyss.head = b2->next;
 
-     if (0 == bubble_double(*b1) && 0 == bubble_double(*b2)) {
-          struct Bubble *bm = abyss.free;
-          abyss.free = abyss.free->next;
-          abyss.used = abyss.used + 1;
+     struct Page page = { 0 };
+     page.state = abyss;
 
-          bm->head = b1;
-          bm->head->next = b2;
+     if (0 == bubble_double(*b1) && 0 == bubble_double(*b2)) {
+          page = take_free_bubble(abyss);
+
+          page.bubble->head = b1;
+          page.bubble->head->next = b2;
           b2->next = NULL;
 
-          bm->next = abyss.head;
-          abyss.head = bm;
+          page.bubble->next = page.state.head;
+          page.state.head = page.bubble;
      } else if (0 == bubble_double(*b1)) {
-          struct Bubble *bm = abyss.free;
-          abyss.free = abyss.free->next;
-          abyss.used = abyss.used + 1;
+          page = take_free_bubble(abyss);
 
-          bm->head = b1;
+          page.bubble->head = b1;
           b1->next = b2->head;
-          bm->next = abyss.head;
-          abyss.head = bm;
+          page.bubble->next = page.state.head;
+          page.state.head = page.bubble;
 
-          b2->next = abyss.free;
-          abyss.free = b2;
-          abyss.used = abyss.used - 1;
+          page = give_free_bubble(page.state, b2);
      } else if (0 == bubble_double(*b2)) {
           struct Bubble *cursor = b1->head;
           while (NULL != cursor->next) {
                cursor = cursor->next;
           }
           cursor->next = b2;
-          b1->next = abyss.head;
-          abyss.head = b1;
+          b1->next = page.state.head;
+          page.state.head = b1;
 
-          b2->next = abyss.free;
-          abyss.free = b2;
-          abyss.used = abyss.used - 1;
+          page = give_free_bubble(page.state, b2);
      } else {
           struct Bubble *cursor = b1->head;
           while (NULL != cursor->next) {
@@ -254,15 +283,13 @@ abyss_merge(struct Abyss abyss) {
           }
           cursor->next = b2->head;
 
-          b1->next = abyss.head;
-          abyss.head = b1;
+          b1->next = page.state.head;
+          page.state.head = b1;
 
-          b2->next = abyss.free;
-          abyss.free = b2;
-          abyss.used = abyss.used - 1;
+          page = give_free_bubble(page.state, b2);
      }
 
-     return abyss;
+     return page.state;
 }
 
 struct Bubble
