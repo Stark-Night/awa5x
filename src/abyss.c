@@ -357,3 +357,17 @@ int
 bubble_double(struct Bubble bubble) {
      return (NULL != bubble.head);
 }
+
+int
+bubble_count(struct Bubble bubble) {
+     if (0 == bubble_double(bubble)) {
+          return 0;
+     }
+
+     int counter = 0;
+     for (struct Bubble *b=bubble.head; NULL!=b; b=b->next) {
+          counter = counter + 1;
+     }
+
+     return counter;
+}

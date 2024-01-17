@@ -131,3 +131,36 @@ out=`./awa5 test-eval-cc`
 [ "x$out" != 'xWWAWWWAW' ] && echo 'run test 7' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
 rm -f test-eval-src test-eval-cc
 
+cat <<EOF > ./test-eval-src
+;; test count
+awa
+
+awa awawa awawa awa awa awa awa awa awa awawa
+awa awawa awawa awa awa awa awa awa awa awa awa
+awawa awawa awa
+awawawawawa
+awa awa awawa awa
+EOF
+./awa5c ./test-eval-src > ./test-eval-cc
+[ $? != 0 ] && echo 'compile test 8' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
+out=`./awa5 test-eval-cc`
+[ "x$out" != 'x2 ' ] && echo 'run test 8' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
+rm -f test-eval-src test-eval-cc
+
+cat <<EOF > ./test-eval-src
+;; test label & jump
+awa
+
+awa awawa awawa awa awa awa awa awa awa awawa
+~wa awa awa awawa awa awa awa awa awa awa awa awa
+awa awa awa awawa
+
+~wa awa awa awa awa awa awa awa awa awa awa awa awa
+awa awawa awawa awa awa awa awa awa awa awa awa
+awa awa awa awawa
+EOF
+./awa5c ./test-eval-src > ./test-eval-cc
+[ $? != 0 ] && echo 'compile test 9' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
+out=`./awa5 test-eval-cc`
+[ "x$out" != 'xA' ] && echo 'run test 9' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
+rm -f test-eval-src test-eval-cc

@@ -278,3 +278,18 @@ eval_mrg(struct Abyss abyss, int8_t parameter) {
 
      return result;
 }
+
+struct EvalResult
+eval_cnt(struct Abyss abyss, int8_t parameter) {
+     struct EvalResult result = { 0 };
+     result.code = EVAL_OK;
+     result.state = abyss;
+
+     int value = bubble_count(*(result.state.head));
+     struct Bubble bubble = bubble_wrap((uint8_t)value); // should be fine to truncate
+
+     result.code = EVAL_NEW_STATE;
+     result.state = abyss_push(result.state, bubble);
+
+     return result;
+}

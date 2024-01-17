@@ -73,6 +73,7 @@ main(int argc, char *argv[]) {
 
      // read the file header.
      struct Header file_header = { 0 };
+     memset(file_header.labels, UINT32_MAX, 256 * sizeof(uint32_t));
 
      memcpy(file_header.magic, input_mmap + file_header.cursor, 8);
      file_header.cursor = file_header.cursor + 8;
@@ -114,6 +115,10 @@ main(int argc, char *argv[]) {
      }
 
      for (int i=0; i<256; ++i) {
+          if (UINT32_MAX == file_header.labels[i]) {
+               continue;
+          }
+
           if (file_header.labels[i] > file_header.code_size) {
                fprintf(stderr, "malformed file\n");
                munmap(input_mmap, input_info.st_size);
@@ -175,11 +180,24 @@ main(int argc, char *argv[]) {
           case MRG:
                program.result = eval_mrg(program.abyss, program.parameter);
                break;
+          case CNT:
+               program.result = eval_cnt(program.abyss, program.parameter);
+               break;
           case LBL:
                // this opcode should never be found since labels are
                // compiled in the header.
                // let's fail as hard as we can.
                abort();
+               break;
+          case JMP:
+               program.result.code = EVAL_OK;
+               if (UINT32_MAX == file_header.labels[program.parameter]) {
+                    program.result.code = EVAL_ERROR;
+               } else {
+                    // memo: subtract 1 because the counter is
+                    // increased at the end of the loop
+                    program.counter = file_header.labels[program.parameter] - 1;
+               }
                break;
           case TRM:
                program.result.code = EVAL_OK;

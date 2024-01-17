@@ -54,4 +54,7 @@ bubble_wrap(int8_t value);
 int
 bubble_double(struct Bubble bubble);
 
+int
+bubble_count(struct Bubble bubble);
+
 #endif
