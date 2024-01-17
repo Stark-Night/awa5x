@@ -42,6 +42,31 @@ give_free_bubble(struct Abyss abyss, struct Bubble *bubble) {
      return page;
 }
 
+static struct Page
+clone_bubble(struct Abyss abyss, struct Bubble *bubble) {
+     struct Page page = take_free_bubble(abyss);
+     struct Bubble *clone = page.bubble;
+
+     if (0 == bubble_double(*bubble)) {
+          clone->value = bubble->value;
+          return page;
+     }
+
+     page = clone_bubble(page.state, bubble->head);
+     clone->head = page.bubble;
+
+     struct Bubble *cursor = clone->head;
+     for (struct Bubble *b=bubble->head->next; NULL!=b; b=b->next) {
+          page = clone_bubble(page.state, b);
+
+          cursor->next = page.bubble;
+          cursor = cursor->next;
+     }
+
+     page.bubble = clone;
+     return page;
+}
+
 struct Abyss
 abyss_expand(struct Abyss abyss) {
      if (NULL == abyss.bubbles) {
@@ -287,6 +312,34 @@ abyss_merge(struct Abyss abyss) {
           page.state.head = b1;
 
           page = give_free_bubble(page.state, b2);
+     }
+
+     return page.state;
+}
+
+struct Abyss
+abyss_clone(struct Abyss abyss) {
+     struct Page page = take_free_bubble(abyss);
+     struct Bubble *bubble = abyss.head;
+     struct Bubble *clone = page.bubble;
+
+     clone->next = bubble;
+     page.state.head = clone;
+
+     if (0 == bubble_double(*bubble)) {
+          clone->value = bubble->value;
+          return page.state;
+     }
+
+     page = clone_bubble(page.state, bubble->head);
+     clone->head = page.bubble;
+
+     struct Bubble *cursor = clone->head;
+     for (struct Bubble *b=bubble->head->next; NULL!=b; b=b->next) {
+          page = clone_bubble(page.state, b);
+
+          cursor->next = page.bubble;
+          cursor = cursor->next;
      }
 
      return page.state;

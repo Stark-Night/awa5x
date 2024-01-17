@@ -34,6 +34,9 @@ struct EvalResult
 eval_pop(struct Abyss abyss, int8_t parameter);
 
 struct EvalResult
+eval_dpl(struct Abyss abyss, int8_t parameter);
+
+struct EvalResult
 eval_srn(struct Abyss abyss, int8_t parameter);
 
 struct EvalResult

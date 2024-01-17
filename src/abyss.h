@@ -45,6 +45,9 @@ abyss_join(struct Abyss abyss, uint8_t size);
 struct Abyss
 abyss_merge(struct Abyss abyss);
 
+struct Abyss
+abyss_clone(struct Abyss abyss);
+
 struct Bubble
 bubble_wrap(int8_t value);
 
