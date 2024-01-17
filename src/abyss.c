@@ -187,7 +187,7 @@ abyss_top(struct Abyss abyss) {
 struct Abyss
 abyss_move(struct Abyss abyss, uint8_t steps) {
      if (0 >= abyss.used) {
-          abort(); // same as above
+          abort(); // signal the user; recovering doesn't seem like a good idea
      }
 
      // the uint8_t type allows a step of 255 when using a parameter
@@ -233,6 +233,7 @@ abyss_join(struct Abyss abyss, uint8_t size) {
 
      // the uint8_t type allows a step of 255 when using a parameter
      // from the interpeter
+
      if (0 == size) {
           return abyss;
      }
@@ -319,6 +320,14 @@ abyss_merge(struct Abyss abyss) {
 
 struct Abyss
 abyss_clone(struct Abyss abyss) {
+     if (0 >= abyss.used) {
+          abort(); // same as above
+     }
+
+     if (NULL == abyss.head) {
+          return abyss;
+     }
+
      struct Page page = take_free_bubble(abyss);
      struct Bubble *bubble = abyss.head;
      struct Bubble *clone = page.bubble;
