@@ -95,5 +95,22 @@ main(int argc, char *argv[]) {
 
      abyss = abyss_drop(abyss);
 
+     bubble.value = 10;
+     abyss = abyss_push(abyss, bubble);
+     int ex = abyss.size;
+     abyss = abyss_expand(abyss);
+     bubble.value = 23;
+     abyss = abyss_push(abyss, bubble);
+     abyss = abyss_expand(abyss);
+     bubble.value = 88;
+     abyss = abyss_push(abyss, bubble);
+     abyss = abyss_expand(abyss);
+     abort_when(88 != abyss.head->value
+                || 23 != abyss.head->next->value
+                || 10 != abyss.head->next->next->value);
+     abort_when(ex * 8 != abyss.size);
+
+     abyss = abyss_drop(abyss);
+
      return 0;
 }

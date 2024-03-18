@@ -67,49 +67,75 @@ clone_bubble(struct Abyss abyss, struct Bubble *bubble) {
      return page;
 }
 
+static struct Abyss
+open_abyss(struct Abyss abyss, int size) {
+     size_t bsize = size * sizeof(struct Bubble);
+     if (bsize <= abyss.size * sizeof(struct Bubble)) {
+          abort();
+     }
+
+     abyss.bubbles = malloc(bsize);
+     abyss.size = size;
+     abyss.used = 0;
+     abyss.head = NULL;
+
+     if (NULL == abyss.bubbles) {
+          abort();
+     }
+
+     return abyss;
+}
+
+static struct Abyss
+generate_free_chain(struct Abyss abyss) {
+     abyss.free = abyss.bubbles;
+
+     struct Bubble *prev = abyss.free;
+     struct Bubble *bubble = abyss.bubbles + 1;
+     for (int i=1; i<abyss.size; ++i) {
+          prev->next = bubble;
+          prev = bubble;
+          bubble = abyss.bubbles + i;
+     }
+
+     return abyss;
+}
+
 struct Abyss
 abyss_expand(struct Abyss abyss) {
      if (NULL == abyss.bubbles) {
-          abyss.bubbles = malloc(32 * sizeof(struct Bubble));
-          abyss.size = 32;
-          abyss.used = 0;
-
-          if (NULL == abyss.bubbles) {
-               abort();
-          }
-
-          abyss.free = abyss.bubbles;
-
-          struct Bubble *prev = abyss.free;
-          struct Bubble *bubble = abyss.bubbles + 1;
-          for (int i=1; i<32; ++i) {
-               prev->next = bubble;
-               prev = bubble;
-               bubble = abyss.bubbles + i;
-          }
+          abyss = open_abyss(abyss, 32);
+          abyss = generate_free_chain(abyss);
 
           return abyss;
      }
 
-     int ps = abyss.size;
-     int ns = ps * 2;
-     size_t nss = ns * sizeof(struct Bubble);
-     if (nss <= abyss.size * sizeof(struct Bubble)) {
-          abort();
+     struct Bubble *cloned = abyss.bubbles;
+     struct Bubble *chead = abyss.head;
+     struct Bubble *head = NULL;
+
+     abyss = open_abyss(abyss, abyss.size * 2);
+     abyss = generate_free_chain(abyss);
+
+     while (NULL != chead) {
+          struct Page page = clone_bubble(abyss, chead);
+          struct Bubble *b = page.bubble;
+
+          abyss = page.state;
+
+          if (NULL == head) {
+               head = b;
+               head->next = NULL;
+               abyss.head = head;
+          } else {
+               head->next = b;
+          }
+
+          head = b;
+          chead = chead->next;
      }
 
-     abyss.bubbles = realloc(abyss.bubbles, nss);
-     abyss.size = ns;
-
-     if (NULL == abyss.bubbles) {
-          abort();
-     }
-
-     for (int i=ps; i<abyss.size; ++i) {
-          struct Bubble *b = abyss.bubbles + i;
-          b->next = abyss.free;
-          abyss.free = b;
-     }
+     free(cloned);
 
      return abyss;
 }
