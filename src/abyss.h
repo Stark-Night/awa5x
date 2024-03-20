@@ -33,6 +33,9 @@ abyss_push(struct Abyss abyss, struct Bubble bubble);
 struct Abyss
 abyss_pop(struct Abyss abyss);
 
+struct Abyss
+abyss_big_pop(struct Abyss abyss);
+
 struct Bubble
 abyss_top(struct Abyss abyss);
 

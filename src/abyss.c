@@ -43,6 +43,27 @@ give_free_bubble(struct Abyss abyss, struct Bubble *bubble) {
 }
 
 static struct Page
+give_double_bubble(struct Abyss abyss, struct Bubble *bubble) {
+     struct Page page = { 0 };
+     page.state = abyss;
+
+     if (0 == bubble_double(*bubble)) {
+          page = give_free_bubble(page.state, bubble);
+          return page;
+     }
+
+     struct Bubble *cursor = bubble->head;
+     while (NULL != cursor) {
+          struct Bubble *next = cursor->next;
+          page = give_double_bubble(page.state, cursor);
+          cursor = next;
+     }
+
+     page = give_free_bubble(page.state, bubble);
+     return page;
+}
+
+static struct Page
 clone_bubble(struct Abyss abyss, struct Bubble *bubble) {
      struct Page page = take_free_bubble(abyss);
      struct Bubble *clone = page.bubble;
@@ -194,6 +215,16 @@ abyss_pop(struct Abyss abyss) {
      }
 
      page.bubble->head = NULL;
+
+     return page.state;
+}
+
+struct Abyss
+abyss_big_pop(struct Abyss abyss) {
+     struct Bubble *b = abyss.head;
+     abyss.head = b->next;
+
+     struct Page page = give_double_bubble(abyss, b);
 
      return page.state;
 }
