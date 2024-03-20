@@ -146,6 +146,19 @@ main(int argc, char *argv[]) {
                program.parameter = program.code[program.counter];
           }
 
+#ifdef OPCODE_TRACING
+          if (0 != opcode_has_parameter(program.opcode)) {
+               fprintf(stderr,
+                       "%s %d\n",
+                       opcode_name(program.opcode),
+                       program.parameter);
+          } else {
+               fprintf(stderr,
+                       "%s\n",
+                       opcode_name(program.opcode));
+          }
+#endif
+
           switch (program.opcode) {
           case NOP:
                // do nothing
