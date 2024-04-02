@@ -189,7 +189,7 @@ abyss_push(struct Abyss abyss, struct Bubble bubble) {
 
      struct Bubble *b = page.bubble;
      b->value = bubble.value;
-     b->next = abyss.head;
+     b->next = page.state.head;
      page.state.head = b;
 
      return page.state;
