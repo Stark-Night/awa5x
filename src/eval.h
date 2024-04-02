@@ -52,6 +52,9 @@ struct EvalResult
 eval_mul(struct Abyss abyss, int8_t parameter);
 
 struct EvalResult
+eval_div(struct Abyss abyss, int8_t parameter);
+
+struct EvalResult
 eval_cnt(struct Abyss abyss, int8_t parameter);
 
 #endif

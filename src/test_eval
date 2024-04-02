@@ -201,6 +201,21 @@ awa awa awa awawa
 EOF
 ./awa5c ./test-eval-src > ./test-eval-cc
 [ $? != 0 ] && echo 'compile test 10' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
-out=`./awa5 test-eval-cc`;
+out=`./awa5 test-eval-cc`
 [ "x$out" != 'xaWWaaaWW' ] && echo 'run test 10' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
+rm -f test-eval-src test-eval-cc
+
+cat <<EOF > ./test-eval-src
+;; test div
+awa
+
+awa awawa awawa awa awa awa awa awa awawa awa
+awa awawa awawa awa awa awa awa awa awawawa
+awawawawa awa
+awa awa awa awawa
+EOF
+./awa5c ./test-eval-src > ./test-eval-cc
+[ $? != 0 ] && echo 'compile test 11' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
+out=`./awa5 test-eval-cc`
+[ "x$out" != 'xWW' ] && echo 'run test 11' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
 rm -f test-eval-src test-eval-cc

@@ -60,6 +60,9 @@ abyss_sub(struct Abyss abyss);
 struct Abyss
 abyss_mul(struct Abyss abyss);
 
+struct Abyss
+abyss_div(struct Abyss abyss);
+
 struct Bubble
 bubble_wrap(int8_t value);
 

@@ -202,6 +202,9 @@ main(int argc, char *argv[]) {
           case MUL:
                program.result = eval_mul(program.abyss, program.parameter);
                break;
+          case DIV:
+               program.result = eval_div(program.abyss, program.parameter);
+               break;
           case CNT:
                program.result = eval_cnt(program.abyss, program.parameter);
                break;

@@ -284,6 +284,18 @@ eval_mul(struct Abyss abyss, int8_t parameter) {
 }
 
 struct EvalResult
+eval_div(struct Abyss abyss, int8_t parameter) {
+     struct EvalResult result = { 0 };
+     result.code = EVAL_OK;
+     result.state = abyss;
+
+     result.code = EVAL_NEW_STATE;
+     result.state = abyss_div(result.state);
+
+     return result;
+}
+
+struct EvalResult
 eval_cnt(struct Abyss abyss, int8_t parameter) {
      struct EvalResult result = { 0 };
      result.code = EVAL_OK;

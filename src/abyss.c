@@ -588,6 +588,129 @@ abyss_mul(struct Abyss abyss) {
      return page.state;
 }
 
+static struct Page
+apply_div_op(struct Abyss abyss, struct Bubble *b1, struct Bubble *b2) {
+     struct Page page = { 0 };
+     page.state = abyss;
+
+     if (0 == bubble_double(*b1) && 0 == bubble_double(*b2)) {
+          struct Bubble *head = NULL;
+          struct Bubble *reminder = NULL;
+          struct Bubble *quotient = NULL;
+
+          page = take_free_bubble(page.state);
+          head = page.bubble;
+
+          page = take_free_bubble(page.state);
+          reminder = page.bubble;
+
+          page = take_free_bubble(page.state);
+          quotient = page.bubble;
+
+          div_t qr = div(b1->value, b2->value);
+          reminder->value = qr.rem;
+          quotient->value = qr.quot;
+
+          reminder->next = quotient;
+          head->head = reminder;
+
+          page.bubble = head;
+          return page;
+     } else if (0 == bubble_double(*b2)) {
+          page = take_free_bubble(page.state);
+
+          struct Bubble *head = page.bubble;
+          struct Bubble *cursor = NULL;
+
+          for (struct Bubble *b=b1->head; NULL!=b; b=b->next) {
+               page = apply_div_op(page.state, b, b2);
+
+               if (NULL == cursor) {
+                    head->head = page.bubble;
+                    cursor = head->head;
+               } else {
+                    cursor->next = page.bubble;
+                    cursor = cursor->next;
+               }
+          }
+
+          page.bubble = head;
+          return page;
+     } else if (0 == bubble_double(*b1)) {
+          page = take_free_bubble(page.state);
+
+          struct Bubble *head = page.bubble;
+          struct Bubble *cursor = NULL;
+
+          for (struct Bubble *b=b2->head; NULL!=b; b=b->next) {
+               page = apply_div_op(page.state, b1, b);
+
+               if (NULL == cursor) {
+                    head->head = page.bubble;
+                    cursor = head->head;
+               } else {
+                    cursor->next = page.bubble;
+                    cursor = cursor->next;
+               }
+          }
+
+          page.bubble = head;
+          return page;
+     } else {
+          page = take_free_bubble(page.state);
+
+          struct Bubble *head = page.bubble;
+          struct Bubble *cursor = NULL;
+
+          struct Bubble *b = b1->head;
+          struct Bubble *d = b2->head;
+          while (NULL != b && NULL != d) {
+               page = apply_div_op(page.state, b, d);
+
+               if (NULL == cursor) {
+                    head->head = page.bubble;
+                    cursor = head->head;
+               } else {
+                    cursor->next = page.bubble;
+                    cursor = cursor->next;
+               }
+
+               b = b->next;
+               d = d->next;
+          }
+
+          page.bubble = head;
+          return page;
+     }
+
+     return page;
+}
+
+struct Abyss
+abyss_div(struct Abyss abyss) {
+     if (0 >= abyss.used) {
+          abort(); // same as above
+     }
+
+     if (NULL == abyss.head->next) {
+          return abyss;
+     }
+
+     struct Bubble *b1 = abyss.head;
+     abyss.head = b1->next;
+     struct Bubble *b2 = abyss.head;
+     abyss.head = b2->next;
+
+     struct Page page = apply_div_op(abyss, b1, b2);
+     page.bubble->next = page.state.head;
+     page.state.head = page.bubble;
+
+     page = give_free_bubble(page.state, b1);
+     page = give_free_bubble(page.state, b2);
+
+     return page.state;
+}
+
 struct Bubble
 bubble_wrap(int8_t value) {
      struct Bubble bubble = { 0 };
