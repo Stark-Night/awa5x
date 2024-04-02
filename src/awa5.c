@@ -193,6 +193,15 @@ main(int argc, char *argv[]) {
           case MRG:
                program.result = eval_mrg(program.abyss, program.parameter);
                break;
+          case DD4:
+               program.result = eval_4dd(program.abyss, program.parameter);
+               break;
+          case SUB:
+               program.result = eval_sub(program.abyss, program.parameter);
+               break;
+          case MUL:
+               program.result = eval_mul(program.abyss, program.parameter);
+               break;
           case CNT:
                program.result = eval_cnt(program.abyss, program.parameter);
                break;
@@ -211,15 +220,6 @@ main(int argc, char *argv[]) {
                     // increased at the end of the loop
                     program.counter = file_header.labels[program.parameter] - 1;
                }
-               break;
-          case DD4:
-               program.result = eval_4dd(program.abyss, program.parameter);
-               break;
-          case SUB:
-               program.result = eval_sub(program.abyss, program.parameter);
-               break;
-          case MUL:
-               program.result = eval_mul(program.abyss, program.parameter);
                break;
           case TRM:
                program.result.code = EVAL_OK;
