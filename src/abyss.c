@@ -300,10 +300,14 @@ abyss_join(struct Abyss abyss, uint8_t size) {
      page.bubble->head = page.state.head;
      page.state.head = page.state.head->next;
 
-     struct Bubble *cursor = page.state.head;
-     for (int i=0; i<size && NULL!=page.state.head; ++i) {
-          cursor = page.state.head;
-          page.state.head = page.state.head->next;
+     struct Bubble *cursor = page.bubble->head;
+     for (int i=1; i<size && NULL!=cursor; ++i) {
+          cursor->next = page.state.head;
+          cursor = cursor->next;
+
+          if (NULL != page.state.head) {
+               page.state.head = page.state.head->next;
+          }
      }
      cursor->next = NULL;
 
