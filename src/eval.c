@@ -248,6 +248,42 @@ eval_mrg(struct Abyss abyss, int8_t parameter) {
 }
 
 struct EvalResult
+eval_4dd(struct Abyss abyss, int8_t parameter) {
+     struct EvalResult result = { 0 };
+     result.code = EVAL_OK;
+     result.state = abyss;
+
+     result.code = EVAL_NEW_STATE;
+     result.state = abyss_sum(result.state);
+
+     return result;
+}
+
+struct EvalResult
+eval_sub(struct Abyss abyss, int8_t parameter) {
+     struct EvalResult result = { 0 };
+     result.code = EVAL_OK;
+     result.state = abyss;
+
+     result.code = EVAL_NEW_STATE;
+     result.state = abyss_sub(result.state);
+
+     return result;
+}
+
+struct EvalResult
+eval_mul(struct Abyss abyss, int8_t parameter) {
+     struct EvalResult result = { 0 };
+     result.code = EVAL_OK;
+     result.state = abyss;
+
+     result.code = EVAL_NEW_STATE;
+     result.state = abyss_mul(result.state);
+
+     return result;
+}
+
+struct EvalResult
 eval_cnt(struct Abyss abyss, int8_t parameter) {
      struct EvalResult result = { 0 };
      result.code = EVAL_OK;

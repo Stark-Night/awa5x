@@ -212,6 +212,15 @@ main(int argc, char *argv[]) {
                     program.counter = file_header.labels[program.parameter] - 1;
                }
                break;
+          case DD4:
+               program.result = eval_4dd(program.abyss, program.parameter);
+               break;
+          case SUB:
+               program.result = eval_sub(program.abyss, program.parameter);
+               break;
+          case MUL:
+               program.result = eval_mul(program.abyss, program.parameter);
+               break;
           case TRM:
                program.result.code = EVAL_OK;
                program.counter = file_header.code_size;

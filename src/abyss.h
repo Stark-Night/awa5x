@@ -51,6 +51,15 @@ abyss_merge(struct Abyss abyss);
 struct Abyss
 abyss_clone(struct Abyss abyss);
 
+struct Abyss
+abyss_sum(struct Abyss abyss);
+
+struct Abyss
+abyss_sub(struct Abyss abyss);
+
+struct Abyss
+abyss_mul(struct Abyss abyss);
+
 struct Bubble
 bubble_wrap(int8_t value);
 

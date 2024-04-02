@@ -4,6 +4,9 @@
 #include <stdlib.h>
 #include "abyss.h"
 
+typedef int8_t (*bubble_plain_op)(
+     struct Bubble *b1, struct Bubble *b2);
+
 struct Page {
      struct Bubble *bubble;
      struct Abyss state;
@@ -411,6 +414,176 @@ abyss_clone(struct Abyss abyss) {
           cursor->next = page.bubble;
           cursor = cursor->next;
      }
+
+     return page.state;
+}
+
+static struct Page
+apply_plain_op(struct Abyss abyss, struct Bubble *b1, struct Bubble *b2, bubble_plain_op op) {
+     struct Page page = { 0 };
+     page.state = abyss;
+
+     if (0 == bubble_double(*b1) && 0 == bubble_double(*b2)) {
+          page = take_free_bubble(page.state);
+          page.bubble->value = op(b1, b2);
+
+          return page;
+     } else if (0 == bubble_double(*b2)) {
+          page = take_free_bubble(page.state);
+
+          struct Bubble *head = page.bubble;
+          struct Bubble *cursor = NULL;
+
+          for (struct Bubble *b=b1->head; NULL!=b; b=b->next) {
+               page = apply_plain_op(page.state, b, b2, op);
+
+               if (NULL == cursor) {
+                    head->head = page.bubble;
+                    cursor = head->head;
+               } else {
+                    cursor->next = page.bubble;
+                    cursor = cursor->next;
+               }
+          }
+
+          page.bubble = head;
+          return page;
+     } else if (0 == bubble_double(*b1)) {
+          page = take_free_bubble(page.state);
+
+          struct Bubble *head = page.bubble;
+          struct Bubble *cursor = NULL;
+
+          for (struct Bubble *b=b2->head; NULL!=b; b=b->next) {
+               page = apply_plain_op(page.state, b1, b, op);
+
+               if (NULL == cursor) {
+                    head->head = page.bubble;
+                    cursor = head->head;
+               } else {
+                    cursor->next = page.bubble;
+                    cursor = cursor->next;
+               }
+          }
+
+          page.bubble = head;
+          return page;
+     } else {
+          page = take_free_bubble(page.state);
+
+          struct Bubble *head = page.bubble;
+          struct Bubble *cursor = NULL;
+
+          struct Bubble *b = b1->head;
+          struct Bubble *d = b2->head;
+          while (NULL != b && NULL != d) {
+               page = apply_plain_op(page.state, b, d, op);
+
+               if (NULL == cursor) {
+                    head->head = page.bubble;
+                    cursor = head->head;
+               } else {
+                    cursor->next = page.bubble;
+                    cursor = cursor->next;
+               }
+
+               b = b->next;
+               d = d->next;
+          }
+
+          page.bubble = head;
+          return page;
+     }
+
+     return page;
+}
+
+static int8_t
+bubble_plain_sum(struct Bubble *b1, struct Bubble *b2) {
+     return b1->value + b2->value;
+}
+
+static int8_t
+bubble_plain_diff(struct Bubble *b1, struct Bubble *b2) {
+     return b1->value - b2->value;
+}
+
+static int8_t
+bubble_plain_mul(struct Bubble *b1, struct Bubble *b2) {
+     return b1->value * b2->value;
+}
+
+struct Abyss
+abyss_sum(struct Abyss abyss) {
+     if (0 >= abyss.used) {
+          abort(); // same as above
+     }
+
+     if (NULL == abyss.head->next) {
+          return abyss;
+     }
+
+     struct Bubble *b1 = abyss.head;
+     abyss.head = b1->next;
+     struct Bubble *b2 = abyss.head;
+     abyss.head = b2->next;
+
+     struct Page page = apply_plain_op(abyss, b1, b2, &bubble_plain_sum);
+     page.bubble->next = page.state.head;
+     page.state.head = page.bubble;
+
+     page = give_free_bubble(page.state, b1);
+     page = give_free_bubble(page.state, b2);
+
+     return page.state;
+}
+
+struct Abyss
+abyss_sub(struct Abyss abyss) {
+     if (0 >= abyss.used) {
+          abort(); // same as above
+     }
+
+     if (NULL == abyss.head->next) {
+          return abyss;
+     }
+
+     struct Bubble *b1 = abyss.head;
+     abyss.head = b1->next;
+     struct Bubble *b2 = abyss.head;
+     abyss.head = b2->next;
+
+     struct Page page = apply_plain_op(abyss, b1, b2, &bubble_plain_diff);
+     page.bubble->next = page.state.head;
+     page.state.head = page.bubble;
+
+     page = give_free_bubble(page.state, b1);
+     page = give_free_bubble(page.state, b2);
+
+     return page.state;
+}
+
+struct Abyss
+abyss_mul(struct Abyss abyss) {
+     if (0 >= abyss.used) {
+          abort(); // same as above
+     }
+
+     if (NULL == abyss.head->next) {
+          return abyss;
+     }
+
+     struct Bubble *b1 = abyss.head;
+     abyss.head = b1->next;
+     struct Bubble *b2 = abyss.head;
+     abyss.head = b2->next;
+
+     struct Page page = apply_plain_op(abyss, b1, b2, &bubble_plain_mul);
+     page.bubble->next = page.state.head;
+     page.state.head = page.bubble;
+
+     page = give_free_bubble(page.state, b1);
+     page = give_free_bubble(page.state, b2);
 
      return page.state;
 }
