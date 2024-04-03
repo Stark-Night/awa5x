@@ -219,3 +219,33 @@ EOF
 out=`./awa5 test-eval-cc`
 [ "x$out" != 'xWW' ] && echo 'run test 11' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
 rm -f test-eval-src test-eval-cc
+
+cat <<EOF > ./test-eval-src
+;; test equality
+awa
+
+~wa awa awa awa awa awawawawawawawawa
+awa awawa awawa awa awa awa awa awa awawa awa
+awa awawa awawa awa awa awa awa awa awawawa
+~wa awa awawa awa awawawawawawawawa
+awa awawa awawa awa awa awa awa awa awa awa awa
+awa awa awa awawa
+
+~wa awa awa awa awa awawawawawawawa awa
+awa awawa awawa awa awa awa awa awa awa awa awa
+awa awawa awawa awa awa awa awa awa awa awa awa
+awawa awa awawa awa awa awa awa awa awawa awa
+awa awawa awawa awa awa awa awa awa awa awa awa
+awawa awa awawa awa awa awa awa awa awawa awa
+awawa awa awa awa
+~wa awa awawa awa awa awa awa awa awa awa awa awa
+~wa awa awa awawa awawawawawawawa awa
+~wa awa awa awa awa awa awa awa awa awa awa awa awa
+awa awawa awawa awa awa awa awa awa awa awa awa
+awa awa awa awawa
+EOF
+./awa5c ./test-eval-src > ./test-eval-cc
+[ $? != 0 ] && echo 'compile test 11' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
+out=`./awa5 test-eval-cc`
+[ "x$out" != 'xAA' ] && echo 'run test 11' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
+rm -f test-eval-src test-eval-cc

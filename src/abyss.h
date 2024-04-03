@@ -72,4 +72,16 @@ bubble_double(struct Bubble bubble);
 int
 bubble_count(struct Bubble bubble);
 
+int
+bubble_equals(struct Bubble b1, struct Bubble b2);
+
+int
+bubble_lessers(struct Bubble b1, struct Bubble b2);
+
+int
+bubble_greaters(struct Bubble b1, struct Bubble b2);
+
+int
+bubble_zero(struct Bubble bubble);
+
 #endif

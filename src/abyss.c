@@ -7,6 +7,9 @@
 typedef int8_t (*bubble_plain_op)(
      struct Bubble *b1, struct Bubble *b2);
 
+typedef int (*bubble_comparer)(
+     struct Bubble b1, struct Bubble b2);
+
 struct Page {
      struct Bubble *bubble;
      struct Abyss state;
@@ -736,4 +739,69 @@ bubble_count(struct Bubble bubble) {
      }
 
      return counter;
+}
+
+static int
+bubble_comparator(struct Bubble b1, struct Bubble b2, bubble_comparer f) {
+     if (0 == bubble_double(b1) && 0 == bubble_double(b2)) {
+          return f(b1, b2);
+     } else if (0 != bubble_double(b1) && 0 != bubble_double(b2)) {
+          if (bubble_count(b1) != bubble_count(b2)) {
+               return 0;
+          }
+
+          struct Bubble *h1 = b1.head;
+          struct Bubble *h2 = b2.head;
+
+          int value = 1;
+          while (0 != value && NULL != h1 && NULL != h2) {
+               value = bubble_equals(*h1, *h2);
+
+               h1 = h1->next;
+               h2 = h2->next;
+          }
+
+          return value;
+     }
+
+     return 0;
+}
+
+static int
+bubble_compare_equals(struct Bubble b1, struct Bubble b2) {
+     return (b1.value == b2.value);
+}
+
+static int
+bubble_compare_lesser(struct Bubble b1, struct Bubble b2) {
+     return (b1.value < b2.value);
+}
+
+static int
+bubble_compare_greater(struct Bubble b1, struct Bubble b2) {
+     return (b1.value > b2.value);
+}
+
+int
+bubble_equals(struct Bubble b1, struct Bubble b2) {
+     return bubble_comparator(b1, b2, bubble_compare_equals);
+}
+
+int
+bubble_lessers(struct Bubble b1, struct Bubble b2) {
+     return bubble_comparator(b1, b2, bubble_compare_lesser);
+}
+
+int
+bubble_greaters(struct Bubble b1, struct Bubble b2) {
+     return bubble_comparator(b1, b2, bubble_compare_greater);
+}
+
+int
+bubble_zero(struct Bubble bubble) {
+     if (0 != bubble_double(bubble)) {
+          return 0;
+     }
+
+     return (0 == bubble.value);
 }

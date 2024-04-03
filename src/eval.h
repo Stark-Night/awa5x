@@ -57,4 +57,16 @@ eval_div(struct Abyss abyss, int8_t parameter);
 struct EvalResult
 eval_cnt(struct Abyss abyss, int8_t parameter);
 
+struct EvalResult
+eval_eql(struct Abyss abyss, int8_t parameter);
+
+struct EvalResult
+eval_lss(struct Abyss abyss, int8_t parameter);
+
+struct EvalResult
+eval_gr8(struct Abyss abyss, int8_t parameter);
+
+struct EvalResult
+eval_eqz(struct Abyss abyss, int8_t parameter);
+
 #endif
