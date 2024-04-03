@@ -1,0 +1,38 @@
+.TH AWA5 1 2024-03-04 awa5x
+.SH NAME
+awa5 \- execute compiled AWA5 programs
+.SH SYNOPSIS
+.B awa5
+.I FILE
+.SH DESCRIPTION
+.PP
+Read the given FILE and try to execute it. The file must be a compiled
+AWA5 program, otherwise this tool will terminate with a malformed
+input error.
+.PP
+This manual page refers only to the
+.IR "awa5 tool" ,
+for details about the AWA5 language consult other sources.
+.PP
+Execution of FILE will be suspended whenever user input is requested,
+which can be given through the standard input stream.
+Errors are output on the standard error stream.
+.SH EXIT STATUS
+.TP
+0
+if execution terminated normally,
+.TP
+1
+in case of errors.
+.SH STANDARDS
+This tool implements most of the original AWA5.0 specification, but
+introduces new opcodes and allows 8 bits parameters for every Awatism.
+.SH HISTORY
+The first AWA5.0 specification was released here:
+<https://github.com/TempTempai/AWA5.0>.
+This tool is an extension to that specification.
+.SH "REPORTING BUGS"
+Reports for bugs and other unexpected results can be sent to:
+<starknightawawa@gmail.com>.
+.SH "SEE ALSO"
+.BR awa5c (1)
