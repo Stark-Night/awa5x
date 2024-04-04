@@ -6,7 +6,9 @@ awa5 \- execute compiled AWA5 programs
 .I FILE
 .SH DESCRIPTION
 .PP
-Read the given FILE and try to execute it. The file must be a compiled
+Read the given
+.I FILE
+and try to execute it. The file must be a compiled
 AWA5 program, otherwise this tool will terminate with a malformed
 input error.
 .PP
@@ -14,7 +16,9 @@ This manual page refers only to the
 .IR "awa5 tool" ,
 for details about the AWA5 language consult other sources.
 .PP
-Execution of FILE will be suspended whenever user input is requested,
+Execution of
+.I FILE
+will be suspended whenever user input is requested,
 which can be given through the standard input stream.
 Errors are output on the standard error stream.
 .SH EXIT STATUS
@@ -29,7 +33,9 @@ This tool implements most of the original AWA5.0 specification, but
 introduces new opcodes and allows 8 bits parameters for every Awatism.
 .SH HISTORY
 The first AWA5.0 specification was released here:
-<https://github.com/TempTempai/AWA5.0>.
+.UR https://github.com/TempTempai/AWA5.0
+<https://github.com/TempTempai/AWA5.0>
+.UE .
 This tool is an extension to that specification.
 .SH "REPORTING BUGS"
 Reports for bugs and other unexpected results can be sent to:

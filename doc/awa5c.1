@@ -6,7 +6,9 @@ awa5c \- compile AWA5 code
 .I FILE
 .SH DESCRIPTION
 .PP
-Compile the given FILE into bytecode which can be executed by a
+Compile the given
+.I FILE
+into bytecode which can be executed by a
 compliant virtual machine, or equivalent system.
 .PP
 The compiled code is printed to the standard output stream; it is
@@ -28,7 +30,9 @@ This tool implements most of the original AWA5.0 specification, but
 introduces new opcodes and allows 8 bits parameters for every Awatism.
 .SH HISTORY
 The first AWA5.0 specification was released here:
-<https://github.com/TempTempai/AWA5.0>.
+.UR https://github.com/TempTempai/AWA5.0
+<https://github.com/TempTempai/AWA5.0>
+.UE .
 This tool compiles an extension of that specification.
 .SH BUGS
 In case of malformed files the error messages are rather terse; it's
