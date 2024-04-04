@@ -1,0 +1,40 @@
+.TH AWA5C 1 2024-03-05 awa5x
+.SH NAME
+awa5c \- compile AWA5 code
+.SH SYNOPSIS
+.B awa5c
+.I FILE
+.SH DESCRIPTION
+.PP
+Compile the given FILE into bytecode which can be executed by a
+compliant virtual machine, or equivalent system.
+.PP
+The compiled code is printed to the standard output stream; it is
+therefore necessary to explicitly redirect it to a file, for example
+using the shell's redirection operator.
+.PP
+This manual page refers only to the
+.IR "awa5 compiler" ,
+for details about the AWA5 language consult other sources.
+.SH EXIT STATUS
+.TP
+0
+if execution terminated normally,
+.TP
+1
+in case of errors.
+.SH STANDARDS
+This tool implements most of the original AWA5.0 specification, but
+introduces new opcodes and allows 8 bits parameters for every Awatism.
+.SH HISTORY
+The first AWA5.0 specification was released here:
+<https://github.com/TempTempai/AWA5.0>.
+This tool compiles an extension of that specification.
+.SH BUGS
+In case of malformed files the error messages are rather terse; it's
+doubtful if there will ever be an effort to make them more complete.
+.SH "REPORTING BUGS"
+Reports for bugs and other unexpected results can be sent to:
+<starknightawawa@gmail.com>.
+.SH "SEE ALSO"
+.BR awa5 (1)
