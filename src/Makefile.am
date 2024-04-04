@@ -2,11 +2,18 @@ bin_PROGRAMS = awa5 awa5c
 check_PROGRAMS = test_utf8 test_opcodes test_abyss
 noinst_LIBRARIES = libutf8.a libopcodes.a libabyss.a libeval.a
 
+if HAVE_REGEX_H
+bin_PROGRAMS += awa5p
+endif
+
 awa5_SOURCES = awa5.c
 awa5_LDADD = libopcodes.a libabyss.a libeval.a
 
 awa5c_SOURCES = awa5c.c
 awa5c_LDADD = libutf8.a libopcodes.a
+
+awa5p_SOURCES = awa5p.c
+awa5p_LDADD = libutf8.a
 
 libutf8_a_SOURCES = utf8.c
 libopcodes_a_SOURCES = opcodes.c

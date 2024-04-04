@@ -13,6 +13,9 @@ AM_SILENT_RULES([yes])
 AC_PROG_CC
 AC_PROG_RANLIB
 
+AC_CHECK_HEADERS([regex.h], [regex_h=yes], [regex_h=no])
+AM_CONDITIONAL([HAVE_REGEX_H], [test "x$regex_h" = "xyes"])
+
 AC_ARG_ENABLE([debug],
   [AS_HELP_STRING([--enable-debug], [enable facilities to improve debugging])])
 
