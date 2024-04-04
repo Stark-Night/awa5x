@@ -1,0 +1,66 @@
+.TH AWA5P 1 2024-03-04 awa5x
+.SH NAME
+awa5p \- AWA5 preprocessor
+.SH SYNOPSIS
+.B awa5p
+.I FILE
+.SH DESCRIPTION
+.PP
+Writing AWA5 according to its specifications can be tedious; this
+preprocessor allows defining awatisms by their name rather than their
+representation in awatalk.
+.PP
+This preprocessor will print the result of parsing the file to the
+standard output stream; it is therefore necessary to explicitly
+redirect it to a file, for example using the shell's redirection
+operator.
+.PP
+Each preprocessor directive must be on a line on its own; writing more
+than one on the same line will result in input being silently
+discarded.
+.PP
+To output an awatism, prefix the opcode's name with the
+.B #
+character.
+This character can be preceded by any amount of whitespaces but must
+be immediately followed by the opcode name.
+.PP
+This tool is able to include other files and recursively process them,
+using directives starting the the
+.B >
+character.
+This character can be preceded by any amount of whitespaces but must
+be immediately followed by the name of the file to include.
+If the file does not exist a warning will be emitted, but the
+directive will be ignored.
+.PP
+Any line not recognized as a valid directive will be silently
+discarded and will not appear in the output.
+.SH "EXIT STATUS"
+.TP
+0
+if execution terminated normally,
+.TP
+1
+in case of errors.
+.SH BUGS
+.PP
+The file inclusion directive will search the file starting from the
+current working directory in which the tool has been executed.
+.PP
+This behaviour would likely never change, so it is recommended for
+structured codebases to use tools (editors, build systems and so on)
+able to make it safe and find the expected files in the expected
+locations.
+.PP
+For example, a build system might add another preprocessing layer
+which will substitute all relative paths with absolute paths only
+during the compilation step.
+Alternatively, a development environment might change the working
+directory before executing the preprocessor.
+.SH "REPORTING BUGS"
+Reports for bugs and other unexpected results can be sent to:
+<starknightawawa@gmail.com>.
+.SH "SEE ALSO"
+.BR awa5 (1),
+.BR awa5c (1)
