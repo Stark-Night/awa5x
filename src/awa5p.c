@@ -19,8 +19,17 @@ struct GrowBuffer {
      size_t capacity;
 };
 
+struct CurrentFile {
+     int fd;
+     struct stat finfo;
+     void *map;
+     off_t cursor;
+};
+
 #define OPCODE_PATTERN                                                  \
      "^[[:space:]]*#([[:alnum:]][[:alnum:]][[:alnum:]])([[:space:]]+([[:digit:]]*))?"
+#define INCLUDE_PATTERN                         \
+     "^[[:space:]]*>(.+)"
 
 #define NOP_AWA "awa awa awa awa awa"
 #define PRN_AWA "awa awa awa awawa"
@@ -46,7 +55,7 @@ struct GrowBuffer {
 #define EQZ_AWA "~wa awawawa awa"
 #define TRM_AWA "~wawawawawa"
 
-int8_t opcode_bytes[][3] = {
+static int8_t opcode_bytes[][3] = {
      { 0x4E, 0x4F, 0x50 },
      { 0x50, 0x52, 0x4E },
      { 0x50, 0x52, 0x31 },
@@ -105,7 +114,13 @@ int8_t opcode_bytes[][3] = {
 #define EQZ_BYTES opcode_bytes[21]
 #define TRM_BYTES opcode_bytes[31]
 
-regex_t opcode_regex = { 0 };
+static regex_t opcode_regex = { 0 };
+static regex_t include_regex = { 0 };
+
+// this is defined globally because the large requested size can, in
+// some cases, generate runtime errors.
+static struct CurrentFile file_stack[1048576] = { 0 };
+static size_t file_stack_top = 0;
 
 static struct GrowBuffer *
 grow_buffer(struct GrowBuffer *buffer, size_t requested) {
@@ -265,18 +280,18 @@ output_opcode_awa(void *opcode, regoff_t size) {
 }
 
 static int
-line_check(struct GrowBuffer *line) {
+opcode_line_check(struct GrowBuffer *line) {
      regmatch_t grouped[8] = { 0 };
 
      int opcode_result = regexec(&opcode_regex, line->bytes, 8, grouped, 0);
      if (REG_NOMATCH == opcode_result) {
           // ignore the line
-          return 0;
+          return 1;
      }
 
      if (-1 == grouped[1].rm_so) {
           fprintf(stderr, "malformed input\n");
-          return 1;
+          return 0;
      }
 
      output_opcode_awa(line->bytes + grouped[1].rm_so,
@@ -311,6 +326,88 @@ line_check(struct GrowBuffer *line) {
      return 0;
 }
 
+static struct CurrentFile *
+open_file(const char *name) {
+     if (file_stack_top + 1 >= 1048576) {
+          abort();
+     }
+
+     size_t index = file_stack_top;
+     struct CurrentFile *file = file_stack + index;
+
+     file->fd = open(name, O_RDONLY);
+     if (-1 == file->fd) {
+          fprintf(stderr, "no file %s\n", name);
+          return NULL;
+     }
+
+     if (-1 == fstat(file->fd, &(file->finfo))) {
+          fprintf(stderr, "stat failed\n");
+          close(file->fd);
+          file->fd = -1;
+          return NULL;
+     }
+
+     file->map = mmap(NULL, file->finfo.st_size, PROT_READ, MAP_PRIVATE, file->fd, 0);
+     if (MAP_FAILED == file->map) {
+          fprintf(stderr, "mmap failed\n");
+          close(file->fd);
+          file->fd = -1;
+          return NULL;
+     }
+
+     file->cursor = 0;
+
+     file_stack_top = file_stack_top + 1;
+
+     return file;
+}
+
+static struct CurrentFile *
+close_file(struct CurrentFile *file) {
+     struct CurrentFile *previous =
+          &(file_stack[(file_stack_top < 2) ? 0 : (file_stack_top - 2)]);
+
+     if (NULL != file->map) {
+          munmap(file->map, file->finfo.st_size);
+          file->map = NULL;
+     }
+
+     if (-1 != file->fd) {
+          close(file->fd);
+          file->fd = -1;
+     }
+
+     file->cursor = 0;
+
+     if (file_stack_top > 0) {
+          file_stack_top = file_stack_top - 1;
+     }
+
+     return (0 == file_stack_top) ? NULL : previous;
+}
+
+static struct CurrentFile *
+include_line_check(struct GrowBuffer *line) {
+     regmatch_t grouped[2] = { 0 };
+
+     int opcode_result = regexec(&include_regex, line->bytes, 2, grouped, 0);
+     if (REG_NOMATCH == opcode_result) {
+          // ignore the line
+          return NULL;
+     }
+
+     if (-1 == grouped[1].rm_so) {
+          // ignore the line
+          return NULL;
+     }
+
+     line->bytes[grouped[1].rm_eo] = '\0';
+     struct CurrentFile *file = open_file(line->bytes + grouped[1].rm_so);
+
+     return file;
+}
+
 int
 main(int argc, char *argv[]) {
      if (argc < 2) {
@@ -318,79 +415,78 @@ main(int argc, char *argv[]) {
           return 1;
      }
 
-     int fd = open(argv[1], O_RDONLY);
-     if (-1 == fd) {
-          fprintf(stderr, "no file %s\n", argv[1]);
+     struct CurrentFile *file = open_file(argv[1]);
+     if (NULL == file) {
           return 1;
      }
 
-     struct stat finfo = { 0 };
-     if (-1 == fstat(fd, &finfo)) {
-          fprintf(stderr, "stat failed\n");
-          close(fd);
-          return 1;
-     }
-
-     if (0 == finfo.st_size) {
+     if (0 == file->finfo.st_size) {
           // empty file, nothing to do?
-          close(fd);
+          close_file(file);
           return 0;
-     }
-
-     void *fmap = mmap(NULL, finfo.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-     if (MAP_FAILED == fmap) {
-          fprintf(stderr, "mmap failed\n");
-          close(fd);
-          return 1;
      }
 
      struct GrowBuffer buffer = { 0 };
 
      if (0 != regcomp(&opcode_regex, OPCODE_PATTERN, REG_EXTENDED)) {
           fprintf(stderr, "regex compilation failed\n");
-          munmap(fmap, finfo.st_size);
-          close(fd);
+          close_file(file);
+          return 1;
+     }
+
+     if (0 != regcomp(&include_regex, INCLUDE_PATTERN, REG_EXTENDED|REG_NEWLINE)) {
+          fprintf(stderr, "regex compilation failed\n");
+          close_file(file);
           return 1;
      }
 
      // print the first 'awa' necessary to make this a valid output
      fprintf(stdout, "awa\n");
 
-     off_t cursor = 0;
-     while (cursor < finfo.st_size) {
-          struct UTF8Result decoded = utf8_decode(fmap + cursor);
+     while (NULL != file) {
+          while (file->cursor < file->finfo.st_size) {
+               struct UTF8Result decoded = utf8_decode(file->map + file->cursor);
 
-          append_buffer(&buffer, &(decoded.point), decoded.bytes);
+               append_buffer(&buffer, &(decoded.point), decoded.bytes);
+               file->cursor = file->cursor + decoded.bytes;
 
-          if (1 == buffer.capacity && IS_N(decoded)) {
-               reset_buffer(&buffer);
-               cursor = cursor + decoded.bytes;
-               continue;
-          }
-
-          if (IS_N(decoded)) {
-               append_buffer(&buffer, "\0", 1);
-
-               if (0 != line_check(&buffer)) {
-                    cursor = finfo.st_size;
+               if (1 == buffer.capacity && IS_N(decoded)) {
+                    reset_buffer(&buffer);
+                    continue;
                }
 
-               reset_buffer(&buffer);
+               if (IS_N(decoded)) {
+                    append_buffer(&buffer, "\0", 1);
+
+                    if (0 != opcode_line_check(&buffer)) {
+                         struct CurrentFile *newfile = include_line_check(&buffer);
+
+                         if (NULL != newfile) {
+                              file = newfile;
+                         }
+                    }
+
+                    reset_buffer(&buffer);
+               }
           }
 
-          cursor = cursor + decoded.bytes;
-     }
+          file = close_file(file);
 
-     if (buffer.capacity > 0) {
-          append_buffer(&buffer, "\0", 1);
-          line_check(&buffer);
+          if (buffer.capacity > 0) {
+               append_buffer(&buffer, "\0", 1);
+
+               if (0 != opcode_line_check(&buffer)) {
+                    struct CurrentFile *newfile = include_line_check(&buffer);
+
+                    if (NULL != newfile) {
+                         file = newfile;
+                    }
+               }
+          }
      }
 
      shrink_buffer(&buffer);
      regfree(&opcode_regex);
-
-     munmap(fmap, finfo.st_size);
-     close(fd);
 
      return 0;
 }
