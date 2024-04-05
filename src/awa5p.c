@@ -25,7 +25,6 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <stdint.h>
-#include <regex.h>
 
 #include "utf8.h"
 
@@ -42,10 +41,11 @@ struct CurrentFile {
      off_t cursor;
 };
 
-#define OPCODE_PATTERN                                                  \
-     "^[[:space:]]*#([[:alnum:]][[:alnum:]][[:alnum:]])([[:space:]]+([[:digit:]]*))?"
-#define INCLUDE_PATTERN                         \
-     "^[[:space:]]*>(.+)"
+struct MatchState {
+     int opcode;
+     int parameter;
+     int include;
+};
 
 #define NOP_AWA "awa awa awa awa awa"
 #define PRN_AWA "awa awa awa awawa"
@@ -130,9 +130,6 @@ static int8_t opcode_bytes[][3] = {
 #define EQZ_BYTES opcode_bytes[21]
 #define TRM_BYTES opcode_bytes[31]
 
-static regex_t opcode_regex = { 0 };
-static regex_t include_regex = { 0 };
-
 // this is defined globally because the large requested size can, in
 // some cases, generate runtime errors.
 static struct CurrentFile file_stack[1048576] = { 0 };
@@ -196,145 +193,134 @@ append_buffer(struct GrowBuffer *buffer, void *data, size_t size) {
 
 static struct GrowBuffer *
 reset_buffer(struct GrowBuffer *buffer) {
+     buffer->bytes[0] = '\0';
      buffer->capacity = 0;
      return buffer;
 }
 
 static int
-output_opcode_awa(void *opcode, regoff_t size) {
-     if (3 == size) {
-          if (0 == memcmp(NOP_BYTES, opcode, size)) {
-               return fprintf(stdout, "%s", NOP_AWA);
-          }
+opcode_line_check(struct GrowBuffer *line) {
+     void *opcode = line->bytes;
+     size_t size3 = (line->capacity < 3) ? line->capacity : 3;
 
-          if (0 == memcmp(PRN_BYTES, opcode, size)) {
-               return fprintf(stdout, "%s", PRN_AWA);
-          }
-
-          if (0 == memcmp(PR1_BYTES, opcode, size)) {
-               return fprintf(stdout, "%s", PR1_AWA);
-          }
-
-          if (0 == memcmp(RED_BYTES, opcode, size)) {
-               return fprintf(stdout, "%s", RED_AWA);
-          }
-
-          if (0 == memcmp(R3D_BYTES, opcode, size)) {
-               return fprintf(stdout, "%s", R3D_AWA);
-          }
-
-          if (0 == memcmp(BLO_BYTES, opcode, size)) {
-               return fprintf(stdout, "%s", BLO_AWA);
-          }
-
-          if (0 == memcmp(SBM_BYTES, opcode, size)) {
-               return fprintf(stdout, "%s", SBM_AWA);
-          }
-
-          if (0 == memcmp(POP_BYTES, opcode, size)) {
-               return fprintf(stdout, "%s", POP_AWA);
-          }
-
-          if (0 == memcmp(DPL_BYTES, opcode, size)) {
-               return fprintf(stdout, "%s", DPL_AWA);
-          }
-
-          if (0 == memcmp(SRN_BYTES, opcode, size)) {
-               return fprintf(stdout, "%s", SRN_AWA);
-          }
-
-          if (0 == memcmp(MRG_BYTES, opcode, size)) {
-               return fprintf(stdout, "%s", MRG_AWA);
-          }
-
-          if (0 == memcmp(DD4_BYTES, opcode, size)) {
-               return fprintf(stdout, "%s", DD4_AWA);
-          }
-
-          if (0 == memcmp(SUB_BYTES, opcode, size)) {
-               return fprintf(stdout, "%s", SUB_AWA);
-          }
-
-          if (0 == memcmp(MUL_BYTES, opcode, size)) {
-               return fprintf(stdout, "%s", MUL_AWA);
-          }
-
-          if (0 == memcmp(DIV_BYTES, opcode, size)) {
-               return fprintf(stdout, "%s", DIV_AWA);
-          }
-
-          if (0 == memcmp(CNT_BYTES, opcode, size)) {
-               return fprintf(stdout, "%s", CNT_AWA);
-          }
-
-          if (0 == memcmp(LBL_BYTES, opcode, size)) {
-               return fprintf(stdout, "%s", LBL_AWA);
-          }
-
-          if (0 == memcmp(JMP_BYTES, opcode, size)) {
-               return fprintf(stdout, "%s", JMP_AWA);
-          }
-
-          if (0 == memcmp(EQL_BYTES, opcode, size)) {
-               return fprintf(stdout, "%s", EQL_AWA);
-          }
-
-          if (0 == memcmp(LSS_BYTES, opcode, size)) {
-               return fprintf(stdout, "%s", LSS_AWA);
-          }
-
-          if (0 == memcmp(GR8_BYTES, opcode, size)) {
-               return fprintf(stdout, "%s", GR8_AWA);
-          }
-
-          if (0 == memcmp(EQZ_BYTES, opcode, size)) {
-               return fprintf(stdout, "%s", EQZ_AWA);
-          }
+     if (0 == memcmp(NOP_BYTES, opcode, size3)) {
+          return fprintf(stdout, "%s", NOP_AWA);
      }
+
+     if (0 == memcmp(PRN_BYTES, opcode, size3)) {
+          return fprintf(stdout, "%s", PRN_AWA);
+     }
+
+     if (0 == memcmp(PR1_BYTES, opcode, size3)) {
+          return fprintf(stdout, "%s", PR1_AWA);
+     }
+
+     if (0 == memcmp(RED_BYTES, opcode, size3)) {
+          return fprintf(stdout, "%s", RED_AWA);
+     }
+
+     if (0 == memcmp(R3D_BYTES, opcode, size3)) {
+          return fprintf(stdout, "%s", R3D_AWA);
+     }
+
+     if (0 == memcmp(BLO_BYTES, opcode, size3)) {
+          return fprintf(stdout, "%s", BLO_AWA);
+     }
+
+     if (0 == memcmp(SBM_BYTES, opcode, size3)) {
+          return fprintf(stdout, "%s", SBM_AWA);
+     }
+
+     if (0 == memcmp(POP_BYTES, opcode, size3)) {
+          return fprintf(stdout, "%s", POP_AWA);
+     }
+
+     if (0 == memcmp(DPL_BYTES, opcode, size3)) {
+          return fprintf(stdout, "%s", DPL_AWA);
+     }
+
+     if (0 == memcmp(SRN_BYTES, opcode, size3)) {
+          return fprintf(stdout, "%s", SRN_AWA);
+     }
+
+     if (0 == memcmp(MRG_BYTES, opcode, size3)) {
+          return fprintf(stdout, "%s", MRG_AWA);
+     }
+
+     if (0 == memcmp(DD4_BYTES, opcode, size3)) {
+          return fprintf(stdout, "%s", DD4_AWA);
+     }
+
+     if (0 == memcmp(SUB_BYTES, opcode, size3)) {
+          return fprintf(stdout, "%s", SUB_AWA);
+     }
+
+     if (0 == memcmp(MUL_BYTES, opcode, size3)) {
+          return fprintf(stdout, "%s", MUL_AWA);
+     }
+
+     if (0 == memcmp(DIV_BYTES, opcode, size3)) {
+          return fprintf(stdout, "%s", DIV_AWA);
+     }
+
+     if (0 == memcmp(CNT_BYTES, opcode, size3)) {
+          return fprintf(stdout, "%s", CNT_AWA);
+     }
+
+     if (0 == memcmp(LBL_BYTES, opcode, size3)) {
+          return fprintf(stdout, "%s", LBL_AWA);
+     }
+
+     if (0 == memcmp(JMP_BYTES, opcode, size3)) {
+          return fprintf(stdout, "%s", JMP_AWA);
+     }
+
+     if (0 == memcmp(EQL_BYTES, opcode, size3)) {
+          return fprintf(stdout, "%s", EQL_AWA);
+     }
+
+     if (0 == memcmp(LSS_BYTES, opcode, size3)) {
+          return fprintf(stdout, "%s", LSS_AWA);
+     }
+
+     if (0 == memcmp(GR8_BYTES, opcode, size3)) {
+          return fprintf(stdout, "%s", GR8_AWA);
+     }
+
+     if (0 == memcmp(EQZ_BYTES, opcode, size3)) {
+          return fprintf(stdout, "%s", EQZ_AWA);
+     }
+
+     fprintf(stderr, "invalid opcode: %s\n", line->bytes);
 
      return 0;
 }
 
 static int
-opcode_line_check(struct GrowBuffer *line) {
-     regmatch_t grouped[8] = { 0 };
-
-     int opcode_result = regexec(&opcode_regex, line->bytes, 8, grouped, 0);
-     if (REG_NOMATCH == opcode_result) {
-          // ignore the line
-          return 1;
-     }
-
-     if (-1 == grouped[1].rm_so) {
-          fprintf(stderr, "malformed input\n");
+parameter_line_check(struct GrowBuffer *line) {
+     if (0 == line->capacity || '\0' == line->bytes[0]) {
+          fprintf(stdout, "\n");
           return 0;
      }
 
-     output_opcode_awa(line->bytes + grouped[1].rm_so,
-                       grouped[1].rm_eo - grouped[1].rm_so);
+     // like in eval.c, strtol is not the best but it does its job I guess
+     char *tail = NULL;
+     long int cnum = strtol(line->bytes, &tail, 10);
 
-     if (-1 != grouped[2].rm_so
-         && -1 != grouped[3].rm_so && 0 < grouped[3].rm_eo - grouped[3].rm_so) {
-          line->bytes[grouped[3].rm_eo] = '\0';
+     if (NULL != tail && '\0' != tail[0] && (INT8_MIN > cnum || INT8_MAX < cnum)) {
+          fprintf(stderr,
+                  "invalid parameter; must be a number: %s\n",
+                  line->bytes);
+          fprintf(stdout, "\n");
 
-          // like in eval.c, strtol is not the best but it does its job I guess
-          char *tail = NULL;
-          long int cnum = strtol(line->bytes + grouped[3].rm_so, &tail, 10);
+          return 1;
+     }
 
-          if (NULL != tail && '\0' != tail[0] && (INT8_MIN > cnum || INT8_MAX < cnum)) {
-               fprintf(stderr,
-                       "invalid parameter; must be a number: %s\n",
-                       line->bytes + grouped[3].rm_so);
+     uint8_t masks[8] = { 128, 64, 32, 16, 8, 4, 2, 1 };
+     fprintf(stdout, " %s", (cnum & masks[0]) ? "~wa" : "awa");
 
-               return 1;
-          }
-
-          uint8_t masks[8] = { 128, 64, 32, 16, 8, 4, 2, 1 };
-          fprintf(stdout, " %s", (cnum & masks[0]) ? "~wa" : "awa");
-
-          for (int i=1; i<8; ++i) {
-               fprintf(stdout, "%s", (cnum & masks[i]) ? "wa" : " awa");
-          }
+     for (int i=1; i<8; ++i) {
+          fprintf(stdout, "%s", (cnum & masks[i]) ? "wa" : " awa");
      }
 
      fprintf(stdout, "\n");
@@ -405,22 +391,7 @@ close_file(struct CurrentFile *file) {
 
 static struct CurrentFile *
 include_line_check(struct GrowBuffer *line) {
-     regmatch_t grouped[2] = { 0 };
-
-     int opcode_result = regexec(&include_regex, line->bytes, 2, grouped, 0);
-     if (REG_NOMATCH == opcode_result) {
-          // ignore the line
-          return NULL;
-     }
-
-     if (-1 == grouped[1].rm_so) {
-          // ignore the line
-          return NULL;
-     }
-
-     line->bytes[grouped[1].rm_eo] = '\0';
-     struct CurrentFile *file = open_file(line->bytes + grouped[1].rm_so);
-
+     struct CurrentFile *file = open_file(line->bytes);
      return file;
 }
 
@@ -444,65 +415,141 @@ main(int argc, char *argv[]) {
 
      struct GrowBuffer buffer = { 0 };
 
-     if (0 != regcomp(&opcode_regex, OPCODE_PATTERN, REG_EXTENDED)) {
-          fprintf(stderr, "regex compilation failed\n");
-          close_file(file);
-          return 1;
-     }
-
-     if (0 != regcomp(&include_regex, INCLUDE_PATTERN, REG_EXTENDED|REG_NEWLINE)) {
-          fprintf(stderr, "regex compilation failed\n");
-          close_file(file);
-          return 1;
-     }
-
      // print the first 'awa' necessary to make this a valid output
      fprintf(stdout, "awa\n");
+
+     struct MatchState match_state = { 0 };
 
      while (NULL != file) {
           while (file->cursor < file->finfo.st_size) {
                struct UTF8Result decoded = utf8_decode(file->map + file->cursor);
-
-               append_buffer(&buffer, &(decoded.point), decoded.bytes);
                file->cursor = file->cursor + decoded.bytes;
 
-               if (1 == buffer.capacity && IS_N(decoded)) {
-                    reset_buffer(&buffer);
+               // start of opcode check
+               if (IS_B(decoded)) {
+                    // only if not already in a match state
+                    if (0 == match_state.opcode && 0 == match_state.parameter && 0 == match_state.include) {
+                         // start opcode match
+                         match_state.opcode = 1;
+
+                         // go to next symbol
+                         continue;
+                    }
+               }
+
+               // start of include check
+               if (IS_G(decoded)) {
+                    // only if not already in a match state
+                    if (0 == match_state.opcode && 0 == match_state.parameter && 0 == match_state.include) {
+                         // start include match
+                         match_state.include = 1;
+
+                         // go to next symbol
+                         continue;
+                    }
+               }
+
+               // check opcode match
+               if (0 != match_state.opcode) {
+                    // add to line buffer if not space
+                    if (!IS_S(decoded)) {
+                         append_buffer(&buffer, &decoded.point, decoded.bytes);
+                    }
+
+                    // try to match it
+                    if (IS_S(decoded)) {
+                         append_buffer(&buffer, "\0", 1);
+                         opcode_line_check(&buffer);
+                         reset_buffer(&buffer);
+                         match_state.opcode = 0;
+                    }
+
+                    // if not end of line seek a parameter
+                    if (IS_P(decoded)) {
+                         match_state.parameter = 1;
+                    }
+
+                    // at end of line add a newline in the output too
+                    if (IS_N(decoded)) {
+                         fprintf(stdout, "\n");
+                    }
+
+                    // go to next symbol
                     continue;
                }
 
-               if (IS_N(decoded)) {
-                    append_buffer(&buffer, "\0", 1);
+               // check parameter match
+               if (0 != match_state.parameter) {
+                    // add to line buffer if not space
+                    if (!IS_S(decoded)) {
+                         append_buffer(&buffer, &decoded.point, decoded.bytes);
+                    }
 
-                    if (0 != opcode_line_check(&buffer)) {
+                    // try to match it
+                    if (IS_S(decoded)) {
+                         append_buffer(&buffer, "\0", 1);
+                         parameter_line_check(&buffer);
+                         reset_buffer(&buffer);
+                         match_state.parameter = 0;
+                    }
+
+                    // go to next symbol
+                    continue;
+               }
+
+               // check include match
+               if (0 != match_state.include) {
+                    // add to line buffer if not space
+                    if (!IS_N(decoded)) {
+                         append_buffer(&buffer, &decoded.point, decoded.bytes);
+                    }
+
+                    // try to match it at end of line
+                    if (IS_N(decoded)) {
+                         append_buffer(&buffer, "\0", 1);
+
                          struct CurrentFile *newfile = include_line_check(&buffer);
+                         reset_buffer(&buffer);
 
                          if (NULL != newfile) {
                               file = newfile;
                          }
+
+                         match_state.include = 0;
                     }
 
-                    reset_buffer(&buffer);
+                    // go to next symbol
+                    continue;
                }
           }
 
           file = close_file(file);
 
+          // do the same as above, but at the end of file
           if (buffer.capacity > 0) {
                append_buffer(&buffer, "\0", 1);
 
-               if (0 != opcode_line_check(&buffer)) {
+               if (0 != match_state.opcode) {
+                    opcode_line_check(&buffer);
+               } else if (0 != match_state.parameter) {
+                    parameter_line_check(&buffer);
+               } else if (0 != match_state.include) {
                     struct CurrentFile *newfile = include_line_check(&buffer);
 
                     if (NULL != newfile) {
                          file = newfile;
                     }
                }
+
+               reset_buffer(&buffer);
           }
+
+          match_state.opcode = 0;
+          match_state.parameter = 0;
+          match_state.include = 0;
      }
 
      shrink_buffer(&buffer);
-     regfree(&opcode_regex);
 
      return 0;
 }

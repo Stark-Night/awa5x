@@ -45,4 +45,13 @@ utf8_decode(const void *buffer);
 // newline
 #define IS_N(decoded) ((0x0A == ((decoded).point)))
 
+// only space
+#define IS_P(decoded) ((0x20 == ((decoded).point)))
+
+// #
+#define IS_B(decoded) ((0x23 == ((decoded).point)))
+
+// >
+#define IS_G(decoded) ((0x3E == ((decoded).point)))
+
 #endif

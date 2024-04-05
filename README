@@ -8,20 +8,15 @@ awa5c - compile awatisms into bytecode
 awa5p - process human-readable awatalk into awatisms
 
 How to build:
+It is assumed a UNIX-like environment; building has not been tested on
+other systems and it will likely not work.
+
 The 'configure' script will prepare the source tree for compilation;
-running Make (e.g. 'make -j') will build the above tools.
+running Make (e.g. 'make -j') will build the tools listed above.
 
 If the configure script does not exist, it can be generated using the
 'autoreconf' tool, available as part of the 'Autotools' suite.
 
-The 'awa5p' tool will be built only if the system supports regular
-expressions as part of the standard C library (regex.h, regcomp,
-regexec).
-
 The built programs can be installed with 'make install'.  It will
 require administrator privileges unless a user-writable path is given
 through the '--prefix' option of the 'configure' script.
-
-Important note:
-Currently these tools require a UNIX-like system to work and cannot be
-cross-compiled without non-trivial work.

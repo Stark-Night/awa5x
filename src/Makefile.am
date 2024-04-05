@@ -14,13 +14,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-bin_PROGRAMS = awa5 awa5c
+bin_PROGRAMS = awa5 awa5c awa5p
 check_PROGRAMS = test_utf8 test_opcodes test_abyss
 noinst_LIBRARIES = libutf8.a libopcodes.a libabyss.a libeval.a
-
-if HAVE_REGEX_H
-bin_PROGRAMS += awa5p
-endif
 
 EXTRA_DIST = utf8.h opcodes.h abyss.h eval.h
 
