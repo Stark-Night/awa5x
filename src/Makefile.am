@@ -9,6 +9,10 @@ endif
 awa5_SOURCES = awa5.c
 awa5_LDADD = libopcodes.a libabyss.a libeval.a
 
+if !HAVE_GETLINE
+awa5_LDADD += ../vendors/libglgetline.a
+endif
+
 awa5c_SOURCES = awa5c.c
 awa5c_LDADD = libutf8.a libopcodes.a
 
@@ -19,6 +23,10 @@ libutf8_a_SOURCES = utf8.c
 libopcodes_a_SOURCES = opcodes.c
 libabyss_a_SOURCES = abyss.c
 libeval_a_SOURCES = eval.c
+
+if !HAVE_GETLINE
+libeval_a_CFLAGS = -I../vendors/
+endif
 
 test_utf8_SOURCES = test_utf8.c
 test_utf8_LDADD = libutf8.a

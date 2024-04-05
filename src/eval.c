@@ -7,6 +7,10 @@
 #include "eval.h"
 #include "abyss.h"
 
+#ifndef HAVE_GETLINE
+#include "getline.h"
+#endif
+
 static enum EvalCode
 prn_bubble(struct Bubble bubble) {
      if (0 == bubble_double(bubble)) {

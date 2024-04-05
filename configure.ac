@@ -5,7 +5,7 @@ AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIRS([m4])
 AC_CONFIG_SRCDIR([src/awa5.c])
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile src/Makefile doc/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile doc/Makefile vendors/Makefile])
 
 AM_INIT_AUTOMAKE([foreign tar-pax])
 AM_SILENT_RULES([yes])
@@ -15,6 +15,9 @@ AC_PROG_RANLIB
 
 AC_CHECK_HEADERS([regex.h], [regex_h=yes], [regex_h=no])
 AM_CONDITIONAL([HAVE_REGEX_H], [test "x$regex_h" = "xyes"])
+
+AC_CHECK_FUNCS([getline], [getline_f=yes], [getline_f=no])
+AM_CONDITIONAL([HAVE_GETLINE], [test "x$getline_f" = "xyes"])
 
 AC_ARG_ENABLE([debug],
   [AS_HELP_STRING([--enable-debug], [enable facilities to improve debugging])])
