@@ -20,4 +20,6 @@ if !HAVE_GETLINE
 noinst_LIBRARIES += libglgetline.a
 endif
 
+EXTRA_DIST = getline.h
+
 libglgetline_a_SOURCES = getdelim.c getline.c

@@ -22,6 +22,8 @@ if HAVE_REGEX_H
 bin_PROGRAMS += awa5p
 endif
 
+EXTRA_DIST = utf8.h opcodes.h abyss.h eval.h
+
 awa5_SOURCES = awa5.c
 awa5_LDADD = libopcodes.a libabyss.a libeval.a
 
