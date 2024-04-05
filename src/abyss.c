@@ -147,7 +147,7 @@ generate_free_chain(struct Abyss abyss) {
 struct Abyss
 abyss_expand(struct Abyss abyss) {
      if (NULL == abyss.bubbles) {
-          abyss = open_abyss(abyss, 32);
+          abyss = open_abyss(abyss, 256);
           abyss = generate_free_chain(abyss);
 
           return abyss;
