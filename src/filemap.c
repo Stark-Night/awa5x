@@ -166,8 +166,14 @@ file_map_close(struct FileMap *map) {
      }
 
 #if defined(_WIN64) || defined(_WIN32) || defined (__MINGW32__) || defined(__MINGW64__)
-     return unmap_file_windows(map);
+     int result = unmap_file_windows(map);
 #else
-     return unmap_file_unix(map);
+     int result unmap_file_unix(map);
 #endif
+
+     if (0 == result) {
+          map->status = FILE_MAP_CLOSE;
+     }
+
+     return result;
 }
