@@ -201,94 +201,95 @@ reset_buffer(struct GrowBuffer *buffer) {
 static int
 opcode_line_check(struct GrowBuffer *line) {
      void *opcode = line->bytes;
-     size_t size3 = (line->capacity < 3) ? line->capacity : 3;
 
-     if (0 == memcmp(NOP_BYTES, opcode, size3)) {
-          return fprintf(stdout, "%s", NOP_AWA);
-     }
+     if (3 == line->capacity - 1) {
+          if (0 == memcmp(NOP_BYTES, opcode, 3)) {
+               return fprintf(stdout, "%s", NOP_AWA);
+          }
 
-     if (0 == memcmp(PRN_BYTES, opcode, size3)) {
-          return fprintf(stdout, "%s", PRN_AWA);
-     }
+          if (0 == memcmp(PRN_BYTES, opcode, 3)) {
+               return fprintf(stdout, "%s", PRN_AWA);
+          }
 
-     if (0 == memcmp(PR1_BYTES, opcode, size3)) {
-          return fprintf(stdout, "%s", PR1_AWA);
-     }
+          if (0 == memcmp(PR1_BYTES, opcode, 3)) {
+               return fprintf(stdout, "%s", PR1_AWA);
+          }
 
-     if (0 == memcmp(RED_BYTES, opcode, size3)) {
-          return fprintf(stdout, "%s", RED_AWA);
-     }
+          if (0 == memcmp(RED_BYTES, opcode, 3)) {
+               return fprintf(stdout, "%s", RED_AWA);
+          }
 
-     if (0 == memcmp(R3D_BYTES, opcode, size3)) {
-          return fprintf(stdout, "%s", R3D_AWA);
-     }
+          if (0 == memcmp(R3D_BYTES, opcode, 3)) {
+               return fprintf(stdout, "%s", R3D_AWA);
+          }
 
-     if (0 == memcmp(BLO_BYTES, opcode, size3)) {
-          return fprintf(stdout, "%s", BLO_AWA);
-     }
+          if (0 == memcmp(BLO_BYTES, opcode, 3)) {
+               return fprintf(stdout, "%s", BLO_AWA);
+          }
 
-     if (0 == memcmp(SBM_BYTES, opcode, size3)) {
-          return fprintf(stdout, "%s", SBM_AWA);
-     }
+          if (0 == memcmp(SBM_BYTES, opcode, 3)) {
+               return fprintf(stdout, "%s", SBM_AWA);
+          }
 
-     if (0 == memcmp(POP_BYTES, opcode, size3)) {
-          return fprintf(stdout, "%s", POP_AWA);
-     }
+          if (0 == memcmp(POP_BYTES, opcode, 3)) {
+               return fprintf(stdout, "%s", POP_AWA);
+          }
 
-     if (0 == memcmp(DPL_BYTES, opcode, size3)) {
-          return fprintf(stdout, "%s", DPL_AWA);
-     }
+          if (0 == memcmp(DPL_BYTES, opcode, 3)) {
+               return fprintf(stdout, "%s", DPL_AWA);
+          }
 
-     if (0 == memcmp(SRN_BYTES, opcode, size3)) {
-          return fprintf(stdout, "%s", SRN_AWA);
-     }
+          if (0 == memcmp(SRN_BYTES, opcode, 3)) {
+               return fprintf(stdout, "%s", SRN_AWA);
+          }
 
-     if (0 == memcmp(MRG_BYTES, opcode, size3)) {
-          return fprintf(stdout, "%s", MRG_AWA);
-     }
+          if (0 == memcmp(MRG_BYTES, opcode, 3)) {
+               return fprintf(stdout, "%s", MRG_AWA);
+          }
 
-     if (0 == memcmp(DD4_BYTES, opcode, size3)) {
-          return fprintf(stdout, "%s", DD4_AWA);
-     }
+          if (0 == memcmp(DD4_BYTES, opcode, 3)) {
+               return fprintf(stdout, "%s", DD4_AWA);
+          }
 
-     if (0 == memcmp(SUB_BYTES, opcode, size3)) {
-          return fprintf(stdout, "%s", SUB_AWA);
-     }
+          if (0 == memcmp(SUB_BYTES, opcode, 3)) {
+               return fprintf(stdout, "%s", SUB_AWA);
+          }
 
-     if (0 == memcmp(MUL_BYTES, opcode, size3)) {
-          return fprintf(stdout, "%s", MUL_AWA);
-     }
+          if (0 == memcmp(MUL_BYTES, opcode, 3)) {
+               return fprintf(stdout, "%s", MUL_AWA);
+          }
 
-     if (0 == memcmp(DIV_BYTES, opcode, size3)) {
-          return fprintf(stdout, "%s", DIV_AWA);
-     }
+          if (0 == memcmp(DIV_BYTES, opcode, 3)) {
+               return fprintf(stdout, "%s", DIV_AWA);
+          }
 
-     if (0 == memcmp(CNT_BYTES, opcode, size3)) {
-          return fprintf(stdout, "%s", CNT_AWA);
-     }
+          if (0 == memcmp(CNT_BYTES, opcode, 3)) {
+               return fprintf(stdout, "%s", CNT_AWA);
+          }
 
-     if (0 == memcmp(LBL_BYTES, opcode, size3)) {
-          return fprintf(stdout, "%s", LBL_AWA);
-     }
+          if (0 == memcmp(LBL_BYTES, opcode, 3)) {
+               return fprintf(stdout, "%s", LBL_AWA);
+          }
 
-     if (0 == memcmp(JMP_BYTES, opcode, size3)) {
-          return fprintf(stdout, "%s", JMP_AWA);
-     }
+          if (0 == memcmp(JMP_BYTES, opcode, 3)) {
+               return fprintf(stdout, "%s", JMP_AWA);
+          }
 
-     if (0 == memcmp(EQL_BYTES, opcode, size3)) {
-          return fprintf(stdout, "%s", EQL_AWA);
-     }
+          if (0 == memcmp(EQL_BYTES, opcode, 3)) {
+               return fprintf(stdout, "%s", EQL_AWA);
+          }
 
-     if (0 == memcmp(LSS_BYTES, opcode, size3)) {
-          return fprintf(stdout, "%s", LSS_AWA);
-     }
+          if (0 == memcmp(LSS_BYTES, opcode, 3)) {
+               return fprintf(stdout, "%s", LSS_AWA);
+          }
 
-     if (0 == memcmp(GR8_BYTES, opcode, size3)) {
-          return fprintf(stdout, "%s", GR8_AWA);
-     }
+          if (0 == memcmp(GR8_BYTES, opcode, 3)) {
+               return fprintf(stdout, "%s", GR8_AWA);
+          }
 
-     if (0 == memcmp(EQZ_BYTES, opcode, size3)) {
-          return fprintf(stdout, "%s", EQZ_AWA);
+          if (0 == memcmp(EQZ_BYTES, opcode, 3)) {
+               return fprintf(stdout, "%s", EQZ_AWA);
+          }
      }
 
      fprintf(stderr, "invalid opcode: %s\n", line->bytes);
