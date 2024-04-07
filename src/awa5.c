@@ -19,14 +19,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/mman.h>
 #include <stdint.h>
 #include <arpa/inet.h>
 
+#include "filemap.h"
 #include "opcodes.h"
 #include "abyss.h"
 #include "eval.h"
@@ -56,34 +52,15 @@ main(int argc, char *argv[]) {
           return 1;
      }
 
-     int input_fd = open(argv[1], O_RDONLY);
-     if (-1 == input_fd) {
-          fprintf(stderr, "no file %s\n", argv[1]);
-          return 1;
-     }
+     struct FileMap input_map = file_map_open(argv[1]);
 
-     struct stat input_info = { 0 };
-     if (-1 == fstat(input_fd, &input_info)) {
-          fprintf(stderr, "stat failed\n");
-          close(input_fd);
-          return 1;
-     }
-
-     if (24 > input_info.st_size) {
+     if (24 > input_map.size) {
           // 8 bytes magic
           // 4 + 4 bytes labels
           // 4 bytes code segment size
           // 4 bytes extra flags
           fprintf(stderr, "malformed file\n");
-          close(input_fd);
-          return 1;
-     }
-
-     void *input_mmap =
-          mmap(NULL, input_info.st_size, PROT_READ, MAP_PRIVATE, input_fd, 0);
-     if (MAP_FAILED == input_mmap) {
-          fprintf(stderr, "mmap failed\n");
-          close(input_fd);
+          file_map_close(&input_map);
           return 1;
      }
 
@@ -91,33 +68,32 @@ main(int argc, char *argv[]) {
      struct Header file_header = { 0 };
      memset(file_header.labels, UINT32_MAX, 256 * sizeof(uint32_t));
 
-     memcpy(file_header.magic, input_mmap + file_header.cursor, 8);
+     memcpy(file_header.magic, input_map.buffer + file_header.cursor, 8);
      file_header.cursor = file_header.cursor + 8;
 
-     memcpy(file_header.label_num, input_mmap + file_header.cursor, 2 * sizeof(uint32_t));
+     memcpy(file_header.label_num, input_map.buffer + file_header.cursor, 2 * sizeof(uint32_t));
      file_header.label_num[0] = ntohl(file_header.label_num[0]);
      file_header.label_num[1] = ntohl(file_header.label_num[1]);
      file_header.cursor = file_header.cursor + (2 * sizeof(uint32_t));
 
      for (uint32_t i=0; i<file_header.label_num[0]; ++i) {
-          uint32_t offset = ntohl(((uint32_t *)(input_mmap + file_header.cursor))[0]);
-          uint32_t index = ntohl(((uint32_t *)(input_mmap + file_header.cursor))[1]);
+          uint32_t offset = ntohl(((uint32_t *)(input_map.buffer + file_header.cursor))[0]);
+          uint32_t index = ntohl(((uint32_t *)(input_map.buffer + file_header.cursor))[1]);
 
           file_header.cursor = file_header.cursor + (2 * sizeof(uint32_t));
 
           file_header.labels[index] = offset;
      }
 
-     file_header.code_size = ntohl(((uint32_t *)(input_mmap + file_header.cursor))[0]);
-     file_header.extra_flags = ntohl(((uint32_t *)(input_mmap + file_header.cursor))[1]);
+     file_header.code_size = ntohl(((uint32_t *)(input_map.buffer + file_header.cursor))[0]);
+     file_header.extra_flags = ntohl(((uint32_t *)(input_map.buffer + file_header.cursor))[1]);
      file_header.cursor = file_header.cursor + (2 * sizeof(uint32_t));
 
      // verify header integerity.
      int8_t check_magic[8] = { 0x00, 0x41, 0x57, 0x41, 0x35, 0x30, 0x0D, 0x0A };
      if (0 != memcmp(check_magic, file_header.magic, 8)) {
           fprintf(stderr, "malformed file\n");
-          munmap(input_mmap, input_info.st_size);
-          close(input_fd);
+          file_map_close(&input_map);
           return 1;
      }
 
@@ -125,8 +101,7 @@ main(int argc, char *argv[]) {
           || 256 <= file_header.label_num[0]
           || 256 <= file_header.label_num[1]) {
           fprintf(stderr, "malformed file\n");
-          munmap(input_mmap, input_info.st_size);
-          close(input_fd);
+          file_map_close(&input_map);
           return 1;
      }
 
@@ -137,14 +112,13 @@ main(int argc, char *argv[]) {
 
           if (file_header.labels[i] > file_header.code_size) {
                fprintf(stderr, "malformed file\n");
-               munmap(input_mmap, input_info.st_size);
-               close(input_fd);
+               file_map_close(&input_map);
                return 1;
           }
      }
 
      struct Program program = { 0 };
-     program.code = input_mmap + file_header.cursor;
+     program.code = input_map.buffer + file_header.cursor;
 
      while (program.counter < file_header.code_size) {
           program.opcode = ((uint8_t)program.code[program.counter]) % 32;
@@ -310,8 +284,7 @@ main(int argc, char *argv[]) {
      }
 
      program.abyss = abyss_drop(program.abyss);
-     munmap(input_mmap, input_info.st_size);
-     close(input_fd);
+     file_map_close(&input_map);
 
      return 0;
 }

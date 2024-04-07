@@ -19,15 +19,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/mman.h>
 #include <inttypes.h>
 #include <stdint.h>
 #include <arpa/inet.h>
 
+#include "filemap.h"
 #include "utf8.h"
 #include "opcodes.h"
 
@@ -60,29 +56,9 @@ main(int argc, char *argv[]) {
           return 1;
      }
 
-     int fd = open(argv[1], O_RDONLY);
-     if (-1 == fd) {
-          fprintf(stderr, "no file %s\n", argv[1]);
-          return 1;
-     }
-
-     struct stat finfo = { 0 };
-     if (-1 == fstat(fd, &finfo)) {
-          fprintf(stderr, "stat failed\n");
-          close(fd);
-          return 1;
-     }
-
-     if (3 > finfo.st_size) {
-          fprintf(stderr, "unrealistic file size %ld\n", (long int)finfo.st_size);
-          close(fd);
-          return 1;
-     }
-
-     void *fmap = mmap(NULL, finfo.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-     if (MAP_FAILED == fmap) {
-          fprintf(stderr, "mmap failed\n");
-          close(fd);
+     struct FileMap fmap = file_map_open(argv[1]);
+     if (FILE_MAP_INVALID == fmap.status) {
+          fprintf(stderr, "file map failed\n");
           return 1;
      }
 
@@ -93,18 +69,17 @@ main(int argc, char *argv[]) {
      cvalue.target = 5;
 
      struct Buffers cbuffers = { 0 };
-     cbuffers.output = malloc(finfo.st_size);
-     cbuffers.outsize = (uint32_t)finfo.st_size; // truncates, but it's fine
+     cbuffers.output = malloc(fmap.size);
+     cbuffers.outsize = (uint32_t)fmap.size; // truncates, but it's fine
      if (NULL == cbuffers.output) {
           fprintf(stderr, "malloc failed\n");
-          munmap(fmap, finfo.st_size);
-          close(fd);
+          file_map_close(&fmap);
           return 1;
      }
 
      off_t cursor = 0;
-     while (cursor < finfo.st_size) {
-          struct UTF8Result decoded = utf8_decode(fmap + cursor);
+     while (cursor < fmap.size) {
+          struct UTF8Result decoded = utf8_decode(fmap.buffer + cursor);
 
           if (0 == cstatus.comment && IS_C(decoded)) {
                cstatus.comment = 1;
@@ -241,8 +216,7 @@ main(int argc, char *argv[]) {
      }
 
      // we can close these resources since we're done with them.
-     munmap(fmap, finfo.st_size);
-     close(fd);
+     file_map_close(&fmap);
 
      if (0 < cstatus.preamble) {
           fprintf(stderr, "not a valid program\n");

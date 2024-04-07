@@ -19,13 +19,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/mman.h>
 #include <stdint.h>
 
+#include "filemap.h"
 #include "utf8.h"
 
 struct GrowBuffer {
@@ -35,9 +31,7 @@ struct GrowBuffer {
 };
 
 struct CurrentFile {
-     int fd;
-     struct stat finfo;
-     void *map;
+     struct FileMap map;
      off_t cursor;
 };
 
@@ -338,27 +332,7 @@ open_file(const char *name) {
      size_t index = file_stack_top;
      struct CurrentFile *file = file_stack + index;
 
-     file->fd = open(name, O_RDONLY);
-     if (-1 == file->fd) {
-          fprintf(stderr, "no file %s\n", name);
-          return NULL;
-     }
-
-     if (-1 == fstat(file->fd, &(file->finfo))) {
-          fprintf(stderr, "stat failed\n");
-          close(file->fd);
-          file->fd = -1;
-          return NULL;
-     }
-
-     file->map = mmap(NULL, file->finfo.st_size, PROT_READ, MAP_PRIVATE, file->fd, 0);
-     if (MAP_FAILED == file->map) {
-          fprintf(stderr, "mmap failed\n");
-          close(file->fd);
-          file->fd = -1;
-          return NULL;
-     }
-
+     file->map = file_map_open(name);
      file->cursor = 0;
 
      file_stack_top = file_stack_top + 1;
@@ -371,16 +345,7 @@ close_file(struct CurrentFile *file) {
      struct CurrentFile *previous =
           &(file_stack[(file_stack_top < 2) ? 0 : (file_stack_top - 2)]);
 
-     if (NULL != file->map) {
-          munmap(file->map, file->finfo.st_size);
-          file->map = NULL;
-     }
-
-     if (-1 != file->fd) {
-          close(file->fd);
-          file->fd = -1;
-     }
-
+     file_map_close(&(file->map));
      file->cursor = 0;
 
      if (file_stack_top > 0) {
@@ -408,7 +373,7 @@ main(int argc, char *argv[]) {
           return 1;
      }
 
-     if (0 == file->finfo.st_size) {
+     if (0 == file->map.size) {
           // empty file, nothing to do?
           close_file(file);
           return 0;
@@ -422,8 +387,8 @@ main(int argc, char *argv[]) {
      struct MatchState match_state = { 0 };
 
      while (NULL != file) {
-          while (file->cursor < file->finfo.st_size) {
-               struct UTF8Result decoded = utf8_decode(file->map + file->cursor);
+          while (file->cursor < file->map.size) {
+               struct UTF8Result decoded = utf8_decode(file->map.buffer + file->cursor);
                file->cursor = file->cursor + decoded.bytes;
 
                // start of opcode check
