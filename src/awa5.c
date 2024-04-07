@@ -20,7 +20,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#if defined(_WIN64) || defined(_WIN32) || defined (__MINGW32__) || defined(__MINGW64__)
+#include <winsock.h>
+#else
 #include <arpa/inet.h>
+#endif
 
 #include "filemap.h"
 #include "opcodes.h"

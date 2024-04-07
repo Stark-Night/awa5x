@@ -32,7 +32,7 @@
 #if defined(_WIN64) || defined(_WIN32) || defined (__MINGW32__) || defined(__MINGW64__)
 static int
 map_file_windows(const char *filename, struct FileMap *map) {
-     return 0;
+     return 1;
 }
 
 static int

@@ -33,6 +33,12 @@ awa5c_LDADD = libfilemap.a libutf8.a libopcodes.a
 awa5p_SOURCES = awa5p.c
 awa5p_LDADD = libfilemap.a libutf8.a
 
+if HAVE_WAPI
+awa5_LDADD += -lws2_32
+awa5c_LDADD += -lws2_32
+awa5p_LDADD += -lws2_32
+endif
+
 libutf8_a_SOURCES = utf8.c
 libopcodes_a_SOURCES = opcodes.c
 libabyss_a_SOURCES = abyss.c

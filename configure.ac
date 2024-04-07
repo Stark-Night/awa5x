@@ -27,6 +27,12 @@ AM_SILENT_RULES([yes])
 
 AC_PROG_CC
 AC_PROG_RANLIB
+AC_CANONICAL_HOST
+
+AS_CASE(["$host_os"],
+  [*mingw*], [have_wapi=yes],
+  [have_wapi=no])
+AM_CONDITIONAL([HAVE_WAPI], [test "x$have_wapi" = "xyes"])
 
 AC_CHECK_FUNCS([getline], [getline_f=yes], [getline_f=no])
 AM_CONDITIONAL([HAVE_GETLINE], [test "x$getline_f" = "xyes"])
