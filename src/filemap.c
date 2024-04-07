@@ -32,11 +32,66 @@
 #if defined(_WIN64) || defined(_WIN32) || defined (__MINGW32__) || defined(__MINGW64__)
 static int
 map_file_windows(const char *filename, struct FileMap *map) {
-     return 1;
+     map->descriptor = CreateFile(filename,
+                                  GENERIC_READ,
+                                  0,
+                                  NULL,
+                                  OPEN_EXISTING,
+                                  FILE_ATTRIBUTE_NORMAL,
+                                  0);
+     if (INVALID_HANDLE_VALUE == map->descriptor) {
+          fprintf(stderr, "no file %s\n", filename);
+          return 1;
+     }
+
+     LARGE_INTEGER size = { 0 };
+     if (!GetFileSizeEx(map->descriptor, &size)) {
+          fprintf(stderr, "no file size\n");
+          CloseHandle(map->descriptor);
+          return 1;
+     }
+
+     if (0 == size.QuadPart) {
+          fprintf(stderr, "empty file\n");
+          CloseHandle(map->descriptor);
+          return 1;
+     }
+
+     map->size = size.QuadPart;
+
+     map->object = CreateFileMapping(map->descriptor,
+                                     NULL,
+                                     PAGE_READONLY,
+                                     0,
+                                     0,
+                                     NULL);
+     if (INVALID_HANDLE_VALUE == map->object) {
+          fprintf(stderr, "no map object\n");
+          CloseHandle(map->descriptor);
+          return 1;
+     }
+
+     map->buffer = MapViewOfFile(map->object,
+                                 FILE_MAP_READ,
+                                 0,
+                                 0,
+                                 0);
+     if (NULL == map->buffer) {
+          fprintf(stderr, "unavailable file view\n");
+          CloseHandle(map->object);
+          CloseHandle(map->descriptor);
+          return 1;
+     }
+
+     return 0;
 }
 
 static int
 unmap_file_windows(struct FileMap *map) {
+     UnmapViewOfFile(map->buffer);
+     CloseHandle(map->object);
+     CloseHandle(map->descriptor);
+
      return 0;
 }
 #else

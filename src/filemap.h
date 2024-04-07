@@ -1,6 +1,10 @@
 #ifndef FILEMAP_H
 #define FILEMAP_H
 
+#if defined(_WIN64) || defined(_WIN32) || defined (__MINGW32__) || defined(__MINGW64__)
+#include <windows.h>
+#endif
+
 struct FileMap {
      void *buffer;
      off_t size;
@@ -11,7 +15,8 @@ struct FileMap {
      } status;
 
 #if defined(_WIN64) || defined(_WIN32) || defined (__MINGW32__) || defined(__MINGW64__)
-
+     HANDLE descriptor;
+     HANDLE object;
 #else
      int descriptor;
 #endif
