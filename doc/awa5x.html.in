@@ -170,6 +170,8 @@
 
         <p>The content of this section will change as this implementation and the original specifications diverge over time.</p>
 
+        <p>All opcodes require 8-bit parameters. In the original specifications, only the <code>BLO</code> opcode is able to handle an 8-bit value while every other operation can operate only on 5-bit values.</p>
+
         <p>A new <code>EQZ</code> opcode (hexadecimal code <code>0x15</code>) has been added for fast zero-equality comparisons. Originally, a program would need to push a bubble with a value of zero before being able to make a comparison, then popping the bubble before continuing execution. This opcode removes the need for both pushing and popping.</p>
 
         <p>The code is now compiled before being executed. The compilation is designed to make recognizing opcodes faster as the syntax is a textual representation of reset (<code>awa</code>) or set (<code>wa</code>, <code>~wa</code>) bits, so the executor can just compare bits instead of parsing text. Theoretically, it is also possible to write a compiler generating a natively executable binary instead of bytecode for a virtual machine.</p>
