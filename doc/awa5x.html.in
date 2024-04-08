@@ -4,6 +4,123 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>awa5x User Manual</title>
+    <style>
+      /* uniform */
+      *, *:before, *:after {
+          box-sizing: border-box;
+      }
+
+      * {
+          margin: 0;
+      }
+
+      body {
+          line-height: 1.5;
+      }
+
+      img, picture {
+          display: block;
+          max-width: 100%;
+      }
+
+      input, button, textarea, select {
+          font: inherit;
+      }
+      /* end uniform */
+
+      /* colors */
+      body {
+          background-color: #FFFFFF;
+          color: #000000;
+      }
+
+      a:link {
+          color: #0000EE;
+      }
+
+      a:visited {
+          color: #551A8B;
+      }
+
+      pre {
+          border-color: #909090;
+          background-color: #F8F8F8;
+      }
+
+      @media (prefers-color-scheme: dark) {
+          body {
+              background-color: #151515;
+              color: #A1A1A1;
+          }
+
+          a:link {
+              color: #7777EE;
+          }
+
+          a:visited {
+              color: #ACA0C0;
+          }
+
+          pre {
+              border-color: #949494;
+              background-color: #252525;
+              color: #B0B0B0;
+          }
+      }
+      /* end colors */
+
+      /* rest */
+      main {
+          padding: 32px;
+          padding-top: 0;
+          max-width: 72em;
+      }
+
+      section {
+          margin-bottom: 3em;
+      }
+
+      h1 {
+          font-size: 2em;
+      }
+
+      h2 {
+          font-size: 1.5em;
+      }
+
+      h1, h2 {
+          margin-top: 0.25em;
+          margin-bottom: 0.5em;
+      }
+
+      p, blockquote {
+          margin-bottom: 0.5em;
+      }
+
+      blockquote {
+          padding-left: 3rem;
+      }
+
+      pre {
+          border-width: 1px;
+          border-style: solid;
+          padding: 10px 20px;
+          margin-bottom: 1em;
+      }
+
+      ul, ol {
+          margin-bottom: 0.5em;
+      }
+
+      li + li {
+          margin-top: 0.5em;
+      }
+
+      #gnu-free-documentation-license h2 {
+          font-size: 1em;
+      }
+      /* end rest */
+    </style>
   </head>
   <body>
     <main>
@@ -53,9 +170,9 @@
 
         <p>The content of this section will change as this implementation and the original specifications diverge over time.</p>
 
-        <p>A new <code>EQZ</code> opcode (hexadecimal code <code>0x15</code>) has been added for fast zero-equality comparisons. Originally, a program would need to push a bubble with a value of zero before being able to make a comparison, then popping the bubble before continuing execution. This opcode removes the need for both pusing and popping.</p>
+        <p>A new <code>EQZ</code> opcode (hexadecimal code <code>0x15</code>) has been added for fast zero-equality comparisons. Originally, a program would need to push a bubble with a value of zero before being able to make a comparison, then popping the bubble before continuing execution. This opcode removes the need for both pushing and popping.</p>
 
-        <p>The code is now compiled before being executed. The compilation is designed to make recognizing opcodes faster as the syntax is a textual representation of reset (<code>awa</code>) or set (<code>wa</code>, <code>~wa</code>) bits. Theoretically, it is also possible to write a compiler generating a natively executable binary instead of bytecode for a virtual machine.</p>
+        <p>The code is now compiled before being executed. The compilation is designed to make recognizing opcodes faster as the syntax is a textual representation of reset (<code>awa</code>) or set (<code>wa</code>, <code>~wa</code>) bits, so the executor can just compare bits instead of parsing text. Theoretically, it is also possible to write a compiler generating a natively executable binary instead of bytecode for a virtual machine.</p>
 
         <p>This suite provides a tool to process a file with more human-readable directives and generate AWA5.0 source code.</p>
       </section>
@@ -603,15 +720,13 @@ input.awc: input.awa
     or any later version published by the Free Software Foundation;
     with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
     A copy of the license is included in the section entitled &quot;GNU
-    Free Documentation License&quot;.
-          </pre>
+    Free Documentation License&quot;.</pre>
 
           <p>If you have Invariant Sections, Front-Cover Texts and Back-Cover Texts,
             replace the &quot;with &hellip; Texts.&quot; line with this:</p>
 
           <pre>    with the Invariant Sections being LIST THEIR TITLES, with the
-    Front-Cover Texts being LIST, and with the Back-Cover Texts being LIST.
-          </pre>
+    Front-Cover Texts being LIST, and with the Back-Cover Texts being LIST.</pre>
 
           <p>If you have Invariant Sections without Cover Texts, or some other
             combination of the three, merge those two alternatives to suit the
