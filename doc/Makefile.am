@@ -15,3 +15,9 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 dist_man1_MANS = awa5.1 awa5c.1
+
+install-html-local:
+	$(MKDIR_P) $(DESTDIR)$(htmldir)
+	cp awa5x.html $(DESTDIR)$(htmldir)
+
+install-data-local: install-html-local
