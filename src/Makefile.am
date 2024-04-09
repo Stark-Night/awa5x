@@ -15,10 +15,10 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 bin_PROGRAMS = awa5 awa5c awa5p
-check_PROGRAMS = test_utf8 test_opcodes test_abyss
-noinst_LIBRARIES = libutf8.a libopcodes.a libabyss.a libeval.a libfilemap.a
+check_PROGRAMS = test_utf8 test_opcodes test_abyss test_hash
+noinst_LIBRARIES = libutf8.a libopcodes.a libabyss.a libeval.a libfilemap.a libhash.a
 
-EXTRA_DIST = utf8.h opcodes.h abyss.h eval.h filemap.h
+EXTRA_DIST = utf8.h opcodes.h abyss.h eval.h filemap.h hash.h
 
 awa5_SOURCES = awa5.c
 awa5_LDADD = libfilemap.a libopcodes.a libabyss.a libeval.a
@@ -44,6 +44,7 @@ libopcodes_a_SOURCES = opcodes.c
 libabyss_a_SOURCES = abyss.c
 libeval_a_SOURCES = eval.c
 libfilemap_a_SOURCES = filemap.c
+libhash_a_SOURCES = hash.c
 
 if !HAVE_GETLINE
 libeval_a_CFLAGS = -I../vendors/
@@ -57,6 +58,9 @@ test_opcodes_LDADD = libopcodes.a
 
 test_abyss_SOURCES = test_abyss.c
 test_abyss_LDADD = libabyss.a
+
+test_hash_SOURCES = test_hash.c
+test_hash_LDADD = libhash.a
 
 TESTS = $(check_PROGRAMS) test_eval
 
