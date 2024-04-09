@@ -771,7 +771,7 @@ bubble_comparator(struct Bubble b1, struct Bubble b2, bubble_comparer f) {
 
           int value = 1;
           while (0 != value && NULL != h1 && NULL != h2) {
-               value = bubble_equals(*h1, *h2);
+               value = bubble_comparator(*h1, *h2, f);
 
                h1 = h1->next;
                h2 = h2->next;
