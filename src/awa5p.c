@@ -219,7 +219,7 @@ opcode_line_check(struct GrowBuffer *line) {
           }
      }
 
-     fprintf(stderr, "invalid opcode: %s\n", line->bytes);
+     fprintf(stderr, "invalid opcode: {%s}", line->bytes);
 
      return 0;
 }
