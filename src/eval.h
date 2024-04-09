@@ -24,6 +24,8 @@ struct EvalResult {
           EVAL_OK,
           EVAL_ERROR,
           EVAL_NEW_STATE,
+          EVAL_YES,
+          EVAL_NO,
      } code;
      struct Abyss state;
 };

@@ -224,51 +224,39 @@ main(int argc, char *argv[]) {
                break;
           case EQL:
                program.result = eval_eql(program.abyss, program.parameter);
-               if (EVAL_OK == program.result.code) {
-                    // memo: subtract 1 because the counter is
-                    // increased at the end of the loop
-                    program.counter = file_header.labels[program.parameter] - 1;
-               } else {
-                    // reset the result to avoid exiting the program
-                    // we just need to not jump
-                    program.result.code = EVAL_OK;
+               if (EVAL_NO == program.result.code) {
+                    // skip the next instruction
+                    program.counter = program.counter + 1;
                }
+               // reset the result to avoid exiting the program
+               program.result.code = EVAL_OK;
                break;
           case LSS:
                program.result = eval_lss(program.abyss, program.parameter);
-               if (EVAL_OK == program.result.code) {
-                    // memo: subtract 1 because the counter is
-                    // increased at the end of the loop
-                    program.counter = file_header.labels[program.parameter] - 1;
-               } else {
-                    // reset the result to avoid exiting the program
-                    // we just need to not jump
-                    program.result.code = EVAL_OK;
+               if (EVAL_NO == program.result.code) {
+                    // skip the next instruction
+                    program.counter = program.counter + 1;
                }
+               // reset the result to avoid exiting the program
+               program.result.code = EVAL_OK;
                break;
           case GR8:
                program.result = eval_gr8(program.abyss, program.parameter);
-               if (EVAL_OK == program.result.code) {
-                    // memo: subtract 1 because the counter is
-                    // increased at the end of the loop
-                    program.counter = file_header.labels[program.parameter] - 1;
-               } else {
-                    // reset the result to avoid exiting the program
-                    // we just need to not jump
-                    program.result.code = EVAL_OK;
+               if (EVAL_NO == program.result.code) {
+                    // skip the next instruction
+                    program.counter = program.counter + 1;
                }
+               // reset the result to avoid exiting the program
+               program.result.code = EVAL_OK;
                break;
           case EQZ:
                program.result = eval_eqz(program.abyss, program.parameter);
-               if (EVAL_OK == program.result.code) {
-                    // memo: subtract 1 because the counter is
-                    // increased at the end of the loop
-                    program.counter = file_header.labels[program.parameter] - 1;
-               } else {
-                    // reset the result to avoid exiting the program
-                    // we just need to not jump
-                    program.result.code = EVAL_OK;
+               if (EVAL_NO == program.result.code) {
+                    // skip the next instruction
+                    program.counter = program.counter + 1;
                }
+               // reset the result to avoid exiting the program
+               program.result.code = EVAL_OK;
                break;
           default:
                opcode_error(program.opcode, program.parameter);

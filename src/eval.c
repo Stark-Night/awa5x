@@ -337,12 +337,12 @@ eval_eql(struct Abyss abyss, int8_t parameter) {
      result.state = abyss;
 
      if (NULL == result.state.head || NULL == result.state.head->next) {
-          result.code = EVAL_ERROR;
+          result.code = EVAL_NO;
           return result;
      }
 
      int value = bubble_equals(*(result.state.head), *(result.state.head->next));
-     result.code = (0 == value) ? EVAL_ERROR : EVAL_OK;
+     result.code = (0 == value) ? EVAL_NO : EVAL_YES;
      return result;
 }
 
@@ -353,12 +353,12 @@ eval_lss(struct Abyss abyss, int8_t parameter) {
      result.state = abyss;
 
      if (NULL == result.state.head || NULL == result.state.head->next) {
-          result.code = EVAL_ERROR;
+          result.code = EVAL_NO;
           return result;
      }
 
      int value = bubble_lessers(*(result.state.head), *(result.state.head->next));
-     result.code = (0 == value) ? EVAL_ERROR : EVAL_OK;
+     result.code = (0 == value) ? EVAL_NO : EVAL_YES;
      return result;
 }
 
@@ -369,12 +369,12 @@ eval_gr8(struct Abyss abyss, int8_t parameter) {
      result.state = abyss;
 
      if (NULL == result.state.head || NULL == result.state.head->next) {
-          result.code = EVAL_ERROR;
+          result.code = EVAL_NO;
           return result;
      }
 
      int value = bubble_greaters(*(result.state.head), *(result.state.head->next));
-     result.code = (0 == value) ? EVAL_ERROR : EVAL_OK;
+     result.code = (0 == value) ? EVAL_NO : EVAL_YES;
      return result;
 }
 
@@ -385,11 +385,11 @@ eval_eqz(struct Abyss abyss, int8_t parameter) {
      result.state = abyss;
 
      if (NULL == result.state.head) {
-          result.code = EVAL_ERROR;
+          result.code = EVAL_NO;
           return result;
      }
 
      int value = bubble_zero(*(result.state.head));
-     result.code = (0 == value) ? EVAL_ERROR : EVAL_OK;
+     result.code = (0 == value) ? EVAL_NO : EVAL_YES;
      return result;
 }
