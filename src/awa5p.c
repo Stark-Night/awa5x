@@ -34,6 +34,7 @@ struct MatchState {
      int opcode;
      int parameter;
      int include;
+     int plain;
 };
 
 #define NOP_AWA "awa awa awa awa awa"
@@ -326,7 +327,8 @@ main(int argc, char *argv[]) {
                // start of opcode check
                if (IS_B(decoded)) {
                     // only if not already in a match state
-                    if (0 == match_state.opcode && 0 == match_state.parameter && 0 == match_state.include) {
+                    if (0 == match_state.opcode && 0 == match_state.parameter
+                        && 0 == match_state.include && 0 == match_state.plain) {
                          // start opcode match
                          match_state.opcode = 1;
 
@@ -338,12 +340,25 @@ main(int argc, char *argv[]) {
                // start of include check
                if (IS_G(decoded)) {
                     // only if not already in a match state
-                    if (0 == match_state.opcode && 0 == match_state.parameter && 0 == match_state.include) {
+                    if (0 == match_state.opcode && 0 == match_state.parameter
+                        && 0 == match_state.include && 0 == match_state.plain) {
                          // start include match
                          match_state.include = 1;
 
                          // go to next symbol
                          continue;
+                    }
+               }
+
+               // start of keeping the line as-is
+               if (!IS_S(decoded)) {
+                    // only if not already in a match state
+                    if (0 == match_state.opcode && 0 == match_state.parameter
+                        && 0 == match_state.include && 0 == match_state.plain) {
+                         // start plain text match
+                         match_state.plain = 1;
+
+                         // do not skip this symbol
                     }
                }
 
@@ -416,6 +431,25 @@ main(int argc, char *argv[]) {
                          }
 
                          match_state.include = 0;
+                    }
+
+                    // go to next symbol
+                    continue;
+               }
+
+               // check plain match
+               if (0 != match_state.plain) {
+                    // always add to line buffer
+                    buffer = append_buffer(buffer, decoded.codes, decoded.bytes);
+
+                    // at end of line output it
+                    if (IS_N(decoded)) {
+                         buffer = append_buffer(buffer, "\0", 1);
+
+                         fwrite(buffer.bytes, buffer.capacity - 1, 1, stdout);
+
+                         buffer = reset_buffer(buffer);
+                         match_state.plain = 0;
                     }
 
                     // go to next symbol

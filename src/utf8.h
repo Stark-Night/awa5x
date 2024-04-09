@@ -22,6 +22,7 @@
 struct UTF8Result {
      uint32_t point;
      int bytes;
+     uint8_t codes[8];
 };
 
 struct UTF8Result

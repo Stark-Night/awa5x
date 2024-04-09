@@ -56,6 +56,8 @@ utf8_decode(const void *buffer) {
                ((byte & 0x3F) | (codepoint << 6)) :
                ((0xFF >> type) & byte);
 
+          result.codes[cursor] = byte;
+
           state = states[256 + state * 16 + type];
 
           done = (0 == state || 1 == state);
