@@ -13,3 +13,4 @@ test_utf8
 test_opcodes
 test_abyss
 test_hash
+test_grow

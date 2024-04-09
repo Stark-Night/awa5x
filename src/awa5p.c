@@ -23,12 +23,7 @@
 
 #include "filemap.h"
 #include "utf8.h"
-
-struct GrowBuffer {
-     int8_t *bytes;
-     size_t size;
-     size_t capacity;
-};
+#include "grow.h"
 
 struct CurrentFile {
      struct FileMap map;
@@ -128,69 +123,6 @@ static int8_t opcode_bytes[][3] = {
 // some cases, generate runtime errors.
 static struct CurrentFile file_stack[1048576] = { 0 };
 static size_t file_stack_top = 0;
-
-static struct GrowBuffer *
-grow_buffer(struct GrowBuffer *buffer, size_t requested) {
-     if (NULL == buffer->bytes) {
-          buffer->bytes = malloc(1024);
-          buffer->size = 1024;
-          buffer->capacity = 0;
-
-          if (NULL == buffer->bytes) {
-               abort();
-          }
-     }
-
-     if (buffer->capacity + requested < buffer->size) {
-          return buffer;
-     }
-
-     size_t newsize = buffer->size;
-     while (buffer->capacity + requested > newsize) {
-          newsize = newsize * 2;
-     }
-
-     if (newsize <= buffer->size) {
-          abort();
-     }
-
-     buffer->bytes = realloc(buffer->bytes, newsize);
-     buffer->size = newsize;
-
-     if (NULL == buffer->bytes) {
-          abort();
-     }
-
-     return buffer;
-}
-
-static struct GrowBuffer *
-shrink_buffer(struct GrowBuffer *buffer) {
-     free(buffer->bytes);
-
-     buffer->bytes = NULL;
-     buffer->size = 0;
-     buffer->capacity = 0;
-
-     return buffer;
-}
-
-static struct GrowBuffer *
-append_buffer(struct GrowBuffer *buffer, void *data, size_t size) {
-     grow_buffer(buffer, size);
-
-     memcpy(buffer->bytes + buffer->capacity, data, size);
-     buffer->capacity = buffer->capacity + size;
-
-     return buffer;
-}
-
-static struct GrowBuffer *
-reset_buffer(struct GrowBuffer *buffer) {
-     buffer->bytes[0] = '\0';
-     buffer->capacity = 0;
-     return buffer;
-}
 
 static int
 opcode_line_check(struct GrowBuffer *line) {
@@ -419,14 +351,15 @@ main(int argc, char *argv[]) {
                if (0 != match_state.opcode) {
                     // add to line buffer if not space
                     if (!IS_S(decoded)) {
-                         append_buffer(&buffer, &decoded.point, decoded.bytes);
+                         buffer = append_buffer(buffer, &decoded.point, decoded.bytes);
                     }
 
                     // try to match it
                     if (IS_S(decoded)) {
-                         append_buffer(&buffer, "\0", 1);
+                         buffer = append_buffer(buffer, "\0", 1);
                          opcode_line_check(&buffer);
-                         reset_buffer(&buffer);
+
+                         buffer = reset_buffer(buffer);
                          match_state.opcode = 0;
                     }
 
@@ -448,14 +381,15 @@ main(int argc, char *argv[]) {
                if (0 != match_state.parameter) {
                     // add to line buffer if not space
                     if (!IS_S(decoded)) {
-                         append_buffer(&buffer, &decoded.point, decoded.bytes);
+                         buffer = append_buffer(buffer, &decoded.point, decoded.bytes);
                     }
 
                     // try to match it
                     if (IS_S(decoded)) {
-                         append_buffer(&buffer, "\0", 1);
+                         buffer = append_buffer(buffer, "\0", 1);
                          parameter_line_check(&buffer);
-                         reset_buffer(&buffer);
+
+                         buffer = reset_buffer(buffer);
                          match_state.parameter = 0;
                     }
 
@@ -467,15 +401,15 @@ main(int argc, char *argv[]) {
                if (0 != match_state.include) {
                     // add to line buffer if not space
                     if (!IS_N(decoded)) {
-                         append_buffer(&buffer, &decoded.point, decoded.bytes);
+                         buffer = append_buffer(buffer, &decoded.point, decoded.bytes);
                     }
 
                     // try to match it at end of line
                     if (IS_N(decoded)) {
-                         append_buffer(&buffer, "\0", 1);
+                         buffer = append_buffer(buffer, "\0", 1);
 
                          struct CurrentFile *newfile = include_line_check(&buffer);
-                         reset_buffer(&buffer);
+                         buffer = reset_buffer(buffer);
 
                          if (NULL != newfile) {
                               file = newfile;
@@ -493,7 +427,7 @@ main(int argc, char *argv[]) {
 
           // do the same as above, but at the end of file
           if (buffer.capacity > 0) {
-               append_buffer(&buffer, "\0", 1);
+               buffer = append_buffer(buffer, "\0", 1);
 
                if (0 != match_state.opcode) {
                     opcode_line_check(&buffer);
@@ -507,7 +441,7 @@ main(int argc, char *argv[]) {
                     }
                }
 
-               reset_buffer(&buffer);
+               buffer = reset_buffer(buffer);
           }
 
           match_state.opcode = 0;
@@ -515,7 +449,7 @@ main(int argc, char *argv[]) {
           match_state.include = 0;
      }
 
-     shrink_buffer(&buffer);
+     buffer = shrink_buffer(buffer);
 
      return 0;
 }

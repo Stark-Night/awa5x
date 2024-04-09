@@ -15,10 +15,12 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 bin_PROGRAMS = awa5 awa5c awa5p
-check_PROGRAMS = test_utf8 test_opcodes test_abyss test_hash
-noinst_LIBRARIES = libutf8.a libopcodes.a libabyss.a libeval.a libfilemap.a libhash.a
+check_PROGRAMS = test_utf8 test_opcodes test_abyss \
+	test_hash test_grow
+noinst_LIBRARIES = libutf8.a libopcodes.a libabyss.a libeval.a \
+	libfilemap.a libhash.a libgrow.a
 
-EXTRA_DIST = utf8.h opcodes.h abyss.h eval.h filemap.h hash.h
+EXTRA_DIST = utf8.h opcodes.h abyss.h eval.h filemap.h hash.h grow.h
 
 awa5_SOURCES = awa5.c
 awa5_LDADD = libfilemap.a libopcodes.a libabyss.a libeval.a
@@ -31,7 +33,7 @@ awa5c_SOURCES = awa5c.c
 awa5c_LDADD = libfilemap.a libutf8.a libopcodes.a
 
 awa5p_SOURCES = awa5p.c
-awa5p_LDADD = libfilemap.a libutf8.a
+awa5p_LDADD = libfilemap.a libutf8.a libgrow.a
 
 if HAVE_WAPI
 awa5_LDADD += -lws2_32
@@ -45,6 +47,7 @@ libabyss_a_SOURCES = abyss.c
 libeval_a_SOURCES = eval.c
 libfilemap_a_SOURCES = filemap.c
 libhash_a_SOURCES = hash.c
+libgrow_a_SOURCES = grow.c
 
 if !HAVE_GETLINE
 libeval_a_CFLAGS = -I../vendors/
@@ -61,6 +64,9 @@ test_abyss_LDADD = libabyss.a
 
 test_hash_SOURCES = test_hash.c
 test_hash_LDADD = libhash.a
+
+test_grow_SOURCES = test_grow.c
+test_grow_LDADD = libgrow.a
 
 TESTS = $(check_PROGRAMS) test_eval
 
