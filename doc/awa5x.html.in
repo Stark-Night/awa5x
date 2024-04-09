@@ -230,6 +230,8 @@ $ awa5 output.awc</pre>
 
         <p>There is no guard against recursively including the same file multiple times. If a file <code>a.awp</code> includes <code>b.awp</code> and <code>b.awp</code> includes <code>a.awp</code>, then the tool will try to follow each directive every time each file is requested, eventually hitting the limit of per-process opened files.</p>
 
+        <p>All other text not preceded by one of the above directive characters will be output as-is with no change.</p>
+
         <p>The most simple workflow using this tool is as following:</p>
         <pre>$ ed pre.awp
 [editing the file...]
