@@ -40,8 +40,8 @@ be immediately followed by the name of the file to include.
 If the file does not exist a warning will be emitted, but the
 directive will be ignored.
 .PP
-Any line not recognized as a valid directive will be silently
-discarded and will not appear in the output.
+Any line not starting with one of the characters listed above will be
+output as-is.
 .SH "EXIT STATUS"
 .TP
 0
