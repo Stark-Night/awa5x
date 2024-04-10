@@ -75,6 +75,7 @@ hash_close(struct Hash hash) {
           struct HashItem *item = hash.list[i];
           while (NULL != item) {
                struct HashItem *next = item->next;
+               free(item->dupkey);
                free(item);
                item = next;
           }
