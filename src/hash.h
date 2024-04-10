@@ -27,6 +27,7 @@ enum HashItemState {
 struct HashItem {
      void *next;
      char *dupkey;
+     size_t dupsize;
      uint32_t value;
      enum HashItemState state;
 };
@@ -38,10 +39,10 @@ struct Hash {
 };
 
 struct Hash
-hash_insert(struct Hash hash, const char *key, uint32_t value);
+hash_insert(struct Hash hash, const void *key, size_t keysize, uint32_t value);
 
 struct HashItem
-hash_retrieve(struct Hash hash, const char *key);
+hash_retrieve(struct Hash hash, const void *key, size_t keysize);
 
 struct Hash
 hash_close(struct Hash hash);

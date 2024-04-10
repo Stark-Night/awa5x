@@ -27,7 +27,7 @@ hash_key_calc(const char *key) {
 }
 
 struct Hash
-hash_insert(struct Hash hash, const char *key, uint32_t value) {
+hash_insert(struct Hash hash, const void *key, size_t keysize, uint32_t value) {
      struct HashItem *item = malloc(sizeof(struct HashItem));
      if (NULL == item) {
           return hash;
@@ -35,7 +35,9 @@ hash_insert(struct Hash hash, const char *key, uint32_t value) {
 
      item->value = value;
      item->next = NULL;
-     item->dupkey = strdup(key);
+     item->dupkey = malloc(keysize);
+     item->dupsize = keysize;
+     memcpy(item->dupkey, key, keysize);
      item->state = HASH_ITEM_VALID;
 
      size_t lkey = hash_key_calc(key);
@@ -48,7 +50,7 @@ hash_insert(struct Hash hash, const char *key, uint32_t value) {
 }
 
 struct HashItem
-hash_retrieve(struct Hash hash, const char *key) {
+hash_retrieve(struct Hash hash, const void *key, size_t keysize) {
      struct HashItem dup = { 0 };
 
      size_t lkey = hash_key_calc(key);
@@ -57,7 +59,9 @@ hash_retrieve(struct Hash hash, const char *key) {
      }
 
      for (struct HashItem *item=hash.list[lkey]; NULL!=item; item=item->next) {
-          if (0 != strcmp(key, item->dupkey)) {
+          size_t mins = (keysize < item->dupsize) ? keysize : item->dupsize;
+
+          if (0 != memcmp(key, item->dupkey, mins)) {
                continue;
           }
 

@@ -221,7 +221,7 @@ main(int argc, char *argv[]) {
                } else if (1 == cstatus.text_label_open && 8 == cvalue.target) {
                     // store the value as a byte of the label name
                     cstatus.text_parts = append_buffer(cstatus.text_parts, &value, 1);
-               } else if (1 == cstatus.text_label_close && 1 == cstatus.text_label_store && 8 == cvalue.targetb) {
+               } else if (1 == cstatus.text_label_close && 1 == cstatus.text_label_store && 8 == cvalue.target) {
                     // now associate the destination with the name of the label.
                     cstatus.text_label_close = 0;
                     cstatus.text_label_store = 0;
@@ -230,8 +230,9 @@ main(int argc, char *argv[]) {
 
                     cbuffers.text_labels = hash_insert(cbuffers.text_labels,
                                                        cstatus.text_parts.bytes,
+                                                       cstatus.text_parts.capacity,
                                                        cbuffers.labels[1001]);
-                    cbuffers.text_parts = reset_buffer(cbuffers.text_parts);
+                    cstatus.text_parts = reset_buffer(cstatus.text_parts);
                } else {
                     // save opcode to be output later, but if for some
                     // reason the generated code is longer than the

@@ -17,6 +17,7 @@
 #include "config.h"
 
 #include <stdio.h>
+#include <string.h>
 #include "hash.h"
 
 #define abort_when(c) do{if(c){fprintf(stderr,"at %d\n",__LINE__);return 1;}}while(0)
@@ -25,23 +26,28 @@ int
 main(int argc, char *argv[]) {
      struct Hash hash = { 0 };
 
-     hash = hash_insert(hash, "foobar", 3);
-     hash = hash_insert(hash, "uu", 12);
-     hash = hash_insert(hash, "very long with spaces and ÜTF-8", 0);
-     hash = hash_insert(hash, "raboof", 9);
+     hash = hash_insert(hash, "foobar", 6, 3);
+     hash = hash_insert(hash, "uu", 2, 12);
+     hash = hash_insert(hash,
+                        "very long with spaces and ÜTF-8",
+                        strlen("very long with spaces and ÜTF-8"),
+                        0);
+     hash = hash_insert(hash, "raboof", 6, 9);
 
      struct HashItem item = { 0 };
 
-     item = hash_retrieve(hash, "foobar");
+     item = hash_retrieve(hash, "foobar", 6);
      abort_when(HASH_ITEM_INVALID == item.state || 3 != item.value);
 
-     item = hash_retrieve(hash, "uu");
+     item = hash_retrieve(hash, "uu", 2);
      abort_when(HASH_ITEM_INVALID == item.state || 12 != item.value);
 
-     item = hash_retrieve(hash, "very long with spaces and ÜTF-8");
+     item = hash_retrieve(hash,
+                          "very long with spaces and ÜTF-8",
+                          strlen("very long with spaces and ÜTF-8"));
      abort_when(HASH_ITEM_INVALID == item.state || 0 != item.value);
 
-     item = hash_retrieve(hash, "raboof");
+     item = hash_retrieve(hash, "raboof", 6);
      abort_when(HASH_ITEM_INVALID == item.state || 9 != item.value);
 
      hash = hash_close(hash);
