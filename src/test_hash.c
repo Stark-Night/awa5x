@@ -28,6 +28,7 @@ main(int argc, char *argv[]) {
      hash = hash_insert(hash, "foobar", 3);
      hash = hash_insert(hash, "uu", 12);
      hash = hash_insert(hash, "very long with spaces and ÜTF-8", 0);
+     hash = hash_insert(hash, "raboof", 9);
 
      struct HashItem item = { 0 };
 
@@ -39,6 +40,9 @@ main(int argc, char *argv[]) {
 
      item = hash_retrieve(hash, "very long with spaces and ÜTF-8");
      abort_when(HASH_ITEM_INVALID == item.state || 0 != item.value);
+
+     item = hash_retrieve(hash, "raboof");
+     abort_when(HASH_ITEM_INVALID == item.state || 9 != item.value);
 
      hash = hash_close(hash);
 
