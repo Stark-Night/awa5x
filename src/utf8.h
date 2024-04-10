@@ -55,4 +55,10 @@ utf8_decode(const void *buffer);
 // >
 #define IS_G(decoded) ((0x3E == ((decoded).point)))
 
+// [
+#define IS_OB(decoded) ((0x5B == ((decoded).point)))
+
+// ]
+#define IS_CB(decoded) ((0x5D == ((decoded).point)))
+
 #endif

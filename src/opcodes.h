@@ -47,6 +47,10 @@
 #define GR8 0x14
 #define EQZ 0x15
 
+// extended jumps, using textual labels
+#define TLB 0x16
+#define JTL 0x17
+
 // this is the last valid opcode
 #define TRM 0x1F
 
@@ -61,6 +65,9 @@ opcode_name(int8_t opcode);
 
 int
 opcode_has_parameter(int8_t opcode);
+
+int
+opcode_parameter_size(int8_t opcode);
 
 #define opcode_error(opcode, parameter)                 \
      do {                                               \

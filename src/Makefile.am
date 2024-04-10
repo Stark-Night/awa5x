@@ -30,7 +30,7 @@ awa5_LDADD += ../vendors/libglgetline.a
 endif
 
 awa5c_SOURCES = awa5c.c
-awa5c_LDADD = libfilemap.a libutf8.a libopcodes.a
+awa5c_LDADD = libfilemap.a libutf8.a libgrow.a libopcodes.a
 
 awa5p_SOURCES = awa5p.c
 awa5p_LDADD = libfilemap.a libutf8.a libgrow.a

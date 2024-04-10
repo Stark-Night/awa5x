@@ -29,15 +29,21 @@
 
 #include "filemap.h"
 #include "utf8.h"
+#include "grow.h"
+#include "hash.h"
 #include "opcodes.h"
 
 struct Status {
      int preamble;
      int comment;
      int label;
+     int text_label_open;
+     int text_label_close;
+     int text_label_store;
      struct UTF8Result parts[5];
      int parts_cursor;
      uint32_t position;
+     struct GrowBuffer text_parts;
 };
 
 struct Value {
@@ -48,6 +54,7 @@ struct Value {
 
 struct Buffers {
      uint32_t labels[1024];
+     struct Hash text_labels;
      int8_t *output;
      uint32_t outsize;
      uint32_t outcursor;
@@ -125,7 +132,16 @@ main(int argc, char *argv[]) {
           cstatus.parts[cstatus.parts_cursor] = decoded;
           cstatus.parts_cursor = cstatus.parts_cursor + 1;
 
-          if (IS_S(cstatus.parts[0]) && cstatus.parts_cursor >= 4) {
+          if (IS_OB(cstatus.parts[0])) {
+               // start text label processing
+               cstatus.text_label_open = 1;
+               cvalue.target = 8;
+               cstatus.parts_cursor = 0;
+          } else if (1 == cstatus.text_label_open && IS_CB(cstatus.parts[0])) {
+               cstatus.text_label_open = 0;
+               cstatus.text_label_close = 1;
+               cstatus.parts_cursor = 0;
+          } else if (IS_S(cstatus.parts[0]) && cstatus.parts_cursor >= 4) {
                // maybe awa or ~wa
                if (IS_A(cstatus.parts[1]) && IS_W(cstatus.parts[2]) && IS_A(cstatus.parts[3])) {
                     // awa (= 0)
@@ -197,6 +213,25 @@ main(int argc, char *argv[]) {
 
                     cbuffers.labels[value] = cbuffers.labels[1000];
                     cbuffers.labels[value + 256] = 1;
+               } else if (0 == cstatus.text_label_store && 5 == cvalue.target && TLB == value) {
+                    // like the LBL case, store the label destination first.
+                    cstatus.text_label_store = 1;
+
+                    cbuffers.labels[1001] = cbuffers.outcursor;
+               } else if (1 == cstatus.text_label_open && 8 == cvalue.target) {
+                    // store the value as a byte of the label name
+                    cstatus.text_parts = append_buffer(cstatus.text_parts, &value, 1);
+               } else if (1 == cstatus.text_label_close && 1 == cstatus.text_label_store && 8 == cvalue.targetb) {
+                    // now associate the destination with the name of the label.
+                    cstatus.text_label_close = 0;
+                    cstatus.text_label_store = 0;
+
+                    cstatus.text_parts = append_buffer(cstatus.text_parts, "\0", 1);
+
+                    cbuffers.text_labels = hash_insert(cbuffers.text_labels,
+                                                       cstatus.text_parts.bytes,
+                                                       cbuffers.labels[1001]);
+                    cbuffers.text_parts = reset_buffer(cbuffers.text_parts);
                } else {
                     // save opcode to be output later, but if for some
                     // reason the generated code is longer than the
@@ -213,7 +248,10 @@ main(int argc, char *argv[]) {
                cvalue.bits = 0;
                cvalue.value = 0;
                // reminder: parameters can look like opcodes so keep the 5 == target
-               cvalue.target = (5 == cvalue.target && opcode_has_parameter(value)) ? 8 : 5;
+               cvalue.target = ((5 == cvalue.target && opcode_has_parameter(value))
+                                 || 1 == cstatus.text_label_open) ?
+                    8 :
+                    5;
           }
 
           cursor = cursor + decoded.bytes;
@@ -289,6 +327,9 @@ main(int argc, char *argv[]) {
 
      fflush(stdout);
      free(cbuffers.output);
+
+     cstatus.text_parts = shrink_buffer(cstatus.text_parts);
+     cbuffers.text_labels = hash_close(cbuffers.text_labels);
 
      return 0;
 }
