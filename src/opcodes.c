@@ -59,10 +59,6 @@ opcode_has_parameter(int8_t opcode) {
      case SRN:
      case LBL:
      case JMP:
-     case EQL:
-     case LSS:
-     case GR8:
-     case EQZ:
           return 1;
      default:
           break;
