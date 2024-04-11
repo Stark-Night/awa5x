@@ -30,6 +30,7 @@
 #include "filemap.h"
 #include "utf8.h"
 #include "grow.h"
+#include "gap.h"
 #include "hash.h"
 #include "opcodes.h"
 
@@ -37,13 +38,13 @@ struct Status {
      int preamble;
      int comment;
      int label;
+     int label_use;
      int text_label_open;
      int text_label_close;
      int text_label_store;
      struct UTF8Result parts[5];
      int parts_cursor;
      uint32_t position;
-     struct GrowBuffer text_parts;
 };
 
 struct Value {
@@ -55,9 +56,10 @@ struct Value {
 struct Buffers {
      uint32_t labels[1024];
      struct Hash text_labels;
-     int8_t *output;
-     uint32_t outsize;
+     struct GapBuffer output;
      uint32_t outcursor;
+     struct GrowBuffer text_parts;
+     struct GrowBuffer label_intervals;
 };
 
 int
@@ -80,13 +82,6 @@ main(int argc, char *argv[]) {
      cvalue.target = 5;
 
      struct Buffers cbuffers = { 0 };
-     cbuffers.output = malloc(fmap.size);
-     cbuffers.outsize = (uint32_t)fmap.size; // truncates, but it's fine
-     if (NULL == cbuffers.output) {
-          fprintf(stderr, "malloc failed\n");
-          file_map_close(&fmap);
-          return 1;
-     }
 
      off_t cursor = 0;
      while (cursor < fmap.size) {
@@ -207,12 +202,26 @@ main(int argc, char *argv[]) {
                     // store the label destination where it belongs.
                     cstatus.label = 0;
 
-                    if (0 == cbuffers.labels[value + 256]) {
-                         cbuffers.labels[1010] = cbuffers.labels[1010] + 1;
-                    }
-
                     cbuffers.labels[value] = cbuffers.labels[1000];
                     cbuffers.labels[value + 256] = 1;
+               } else if (1 == cstatus.label_use && 8 == cvalue.target) {
+                    // store label informations to be used later, when
+                    // all the code has been processed.
+                    cstatus.label_use = 0;
+
+                    uint32_t s = 1;
+
+                    cbuffers.label_intervals = append_buffer(cbuffers.label_intervals,
+                                                             &cbuffers.outcursor,
+                                                             sizeof(uint32_t));
+                    cbuffers.label_intervals = append_buffer(cbuffers.label_intervals,
+                                                             &s,
+                                                             sizeof(uint32_t));
+                    cbuffers.label_intervals = append_buffer(cbuffers.label_intervals,
+                                                             &value,
+                                                             1);
+
+                    cbuffers.outcursor = cbuffers.outcursor + 4;
                } else if (0 == cstatus.text_label_store && 5 == cvalue.target && TLB == value) {
                     // like the LBL case, store the label destination first.
                     cstatus.text_label_store = 1;
@@ -220,37 +229,34 @@ main(int argc, char *argv[]) {
                     cbuffers.labels[1001] = cbuffers.outcursor;
                } else if (1 == cstatus.text_label_open && 8 == cvalue.target) {
                     // store the value as a byte of the label name
-                    cstatus.text_parts = append_buffer(cstatus.text_parts, &value, 1);
+                    cbuffers.text_parts = append_buffer(cbuffers.text_parts, &value, 1);
                } else if (1 == cstatus.text_label_close && 1 == cstatus.text_label_store && 8 == cvalue.target) {
                     // now associate the destination with the name of the label.
                     cstatus.text_label_close = 0;
                     cstatus.text_label_store = 0;
 
-                    cstatus.text_parts = append_buffer(cstatus.text_parts, "\0", 1);
+                    cbuffers.text_parts = append_buffer(cbuffers.text_parts, "\0", 1);
 
                     cbuffers.text_labels = hash_insert(cbuffers.text_labels,
-                                                       cstatus.text_parts.bytes,
-                                                       cstatus.text_parts.capacity,
+                                                       cbuffers.text_parts.bytes,
+                                                       cbuffers.text_parts.capacity,
                                                        cbuffers.labels[1001]);
-                    cstatus.text_parts = reset_buffer(cstatus.text_parts);
+                    cbuffers.text_parts = reset_buffer(cbuffers.text_parts);
                } else {
-                    // save opcode to be output later, but if for some
-                    // reason the generated code is longer than the
-                    // input text we abort without graceful shutdowns
-                    // because it is something that must never happen.
-                    if (cbuffers.outcursor >= cbuffers.outsize) {
-                         abort();
-                    }
-
-                    cbuffers.output[cbuffers.outcursor] = value;
+                    // save opcode to be output later.
+                    cbuffers.output = gap_append(cbuffers.output, &value, 1);
                     cbuffers.outcursor = cbuffers.outcursor + 1;
+
+                    if (JMP == value) {
+                         cstatus.label_use = 1;
+                    }
                }
 
                cvalue.bits = 0;
                cvalue.value = 0;
                // reminder: parameters can look like opcodes so keep the 5 == target
                cvalue.target = ((5 == cvalue.target && opcode_has_parameter(value))
-                                 || 1 == cstatus.text_label_open) ?
+                                || 1 == cstatus.text_label_open) ?
                     8 :
                     5;
           }
@@ -283,42 +289,38 @@ main(int argc, char *argv[]) {
      int8_t magic[8] = { 0x00, 0x41, 0x57, 0x41, 0x35, 0x30, 0x0D, 0x0A };
      fwrite(magic, 1, 8, stdout);
 
-     // write how many labels are requested.
-     // since labels are stored as <jump,index> pairs the number is
-     // duplicated to keep things even.
-     uint32_t labeln[2] = {
-          htonl(cbuffers.labels[1010]),
-          htonl(cbuffers.labels[1010]),
-     };
-     fwrite(labeln, sizeof(uint32_t), 2, stdout);
-
-     // write the labels as <jump,index> pairs.
-     for (uint32_t i=0; i<256; ++i) {
-          if (0 == cbuffers.labels[i + 256]) {
-               continue;
-          }
-
-          // keep these temp variables: I met certain compiler
-          // optimizations that would change the value or something
-          // like that.
-          uint32_t offset = htonl(cbuffers.labels[i]);
-          uint32_t index = htonl(i);
-
-          uint32_t netorder[2] = { offset, index };
-          fwrite(netorder, sizeof(uint32_t), 2, stdout);
-     }
-
      // write size of code segment.
      // the second value is planned to be a flag, but at the time of
      // this commit we don't have it ready yet.
      uint32_t coden[2] = {
           htonl((uint32_t)finalsize),
-          htonl((uint32_t)finalsize),
+          0,
      };
      fwrite(coden, sizeof(uint32_t), 2, stdout);
 
+     for (size_t i=0; i<cbuffers.label_intervals.capacity;) {
+          uint32_t position = 0;
+          memcpy(&position, cbuffers.label_intervals.bytes + i, 4);
+          i = i + 4;
+
+          uint32_t s = 0;
+          memcpy(&s, cbuffers.label_intervals.bytes + i, 4);
+          i = i + 4;
+
+          uint32_t value = 0;
+          memcpy(&value, cbuffers.label_intervals.bytes + i, s);
+          i = i + s;
+
+          uint32_t address = ntohl(cbuffers.labels[value]);
+
+          cbuffers.output = gap_move(cbuffers.output, position);
+          cbuffers.output = gap_append(cbuffers.output,
+                                       &address,
+                                       sizeof(uint32_t));
+     }
+
      // write the actual generated code.
-     fwrite(cbuffers.output, 1, cbuffers.outcursor, stdout);
+     cbuffers.output = gapwrite(cbuffers.output, cbuffers.outcursor, stdout);
 
      // pad the output with TRM to align code.
      for (uint64_t i=0; i<finalsize-cbuffers.outcursor; ++i) {
@@ -327,9 +329,10 @@ main(int argc, char *argv[]) {
      }
 
      fflush(stdout);
-     free(cbuffers.output);
 
-     cstatus.text_parts = shrink_buffer(cstatus.text_parts);
+     cbuffers.output = gap_shrink(cbuffers.output);
+     cbuffers.text_parts = shrink_buffer(cbuffers.text_parts);
+     cbuffers.label_intervals = shrink_buffer(cbuffers.label_intervals);
      cbuffers.text_labels = hash_close(cbuffers.text_labels);
 
      return 0;
