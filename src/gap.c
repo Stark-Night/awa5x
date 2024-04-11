@@ -111,6 +111,10 @@ gap_shrink(struct GapBuffer buffer) {
 
 struct GapBuffer
 gapwrite(struct GapBuffer buffer, size_t size, FILE *stream) {
+     if (0 == buffer.size) {
+          return buffer;
+     }
+
      size_t eof = buffer.size - (buffer.end - buffer.start);
      if (buffer.start < eof) {
           size_t diff = eof - buffer.start;
