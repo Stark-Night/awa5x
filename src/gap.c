@@ -26,7 +26,7 @@ grow_buffer(struct GapBuffer *buffer, size_t requested) {
           buffer->bytes = malloc(1024);
           buffer->size = 1024;
           buffer->start = 0;
-          buffer->end = buffer->size;
+          buffer->end = buffer->size - 1;
 
           if (NULL == buffer->bytes) {
                abort();
@@ -80,11 +80,8 @@ gap_move(struct GapBuffer buffer, size_t where) {
           grow_buffer(&buffer, 1024);
      }
 
-     if (where > buffer.size) {
-          // should never happen if this function is used properly.
-          // trying to "fix" it is a possible workaround, but this is
-          // a subtle bug and it's better to be vocal about it.
-          abort();
+     if (where > buffer.size - buffer.end - buffer.start) {
+          where = buffer.size - buffer.end - buffer.start;
      }
 
      if (where < buffer.start) {
