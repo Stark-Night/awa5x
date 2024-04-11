@@ -14,3 +14,4 @@ test_opcodes
 test_abyss
 test_hash
 test_grow
+test_gap
