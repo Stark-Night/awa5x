@@ -34,7 +34,7 @@ main(int argc, char *argv[]) {
      abort_when(0 != buffer.capacity);
 
      buffer = shrink_buffer(buffer);
-     abort_when(NULL != buffer.bytes && 0 == buffer.capacity);
+     abort_when(NULL != buffer.bytes && 0 != buffer.capacity);
 
      return 0;
 }
