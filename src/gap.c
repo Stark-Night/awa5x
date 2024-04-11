@@ -26,7 +26,7 @@ grow_buffer(struct GapBuffer *buffer, size_t requested) {
           buffer->bytes = malloc(1024);
           buffer->size = 1024;
           buffer->start = 0;
-          buffer->end = buffer->size - 1;
+          buffer->end = buffer->size / 2;
 
           if (NULL == buffer->bytes) {
                abort();
