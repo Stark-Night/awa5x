@@ -17,6 +17,7 @@
 #ifndef GAP_H
 #define GAP_H
 
+#include <stdio.h>
 #include <stdint.h>
 
 struct GapBuffer {
@@ -34,5 +35,8 @@ gap_move(struct GapBuffer buffer, size_t where);
 
 struct GapBuffer
 gap_shrink(struct GapBuffer buffer);
+
+struct GapBuffer
+gapwrite(struct GapBuffer buffer, size_t size, FILE *stream);
 
 #endif
