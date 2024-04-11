@@ -33,8 +33,6 @@
 
 struct Header {
      int8_t magic[8];
-     uint32_t label_num[2];
-     uint32_t labels[256];
      uint32_t code_size;
      uint32_t extra_flags;
      uint32_t cursor;
@@ -45,6 +43,7 @@ struct Program {
      uint32_t counter;
      int8_t opcode;
      int8_t parameter;
+     uint32_t extended_parameter;
      struct Abyss abyss;
      struct EvalResult result;
 };
@@ -58,36 +57,20 @@ main(int argc, char *argv[]) {
 
      struct FileMap input_map = file_map_open(argv[1]);
 
-     if (24 > input_map.size) {
+     // read the file header.
+     struct Header file_header = { 0 };
+
+     if (16 > input_map.size) {
           // 8 bytes magic
-          // 4 + 4 bytes labels
           // 4 bytes code segment size
           // 4 bytes extra flags
-          fprintf(stderr, "malformed file\n");
+          fprintf(stderr, "file too small to be real (found %ld)\n", input_map.size);
           file_map_close(&input_map);
           return 1;
      }
 
-     // read the file header.
-     struct Header file_header = { 0 };
-     memset(file_header.labels, UINT32_MAX, 256 * sizeof(uint32_t));
-
      memcpy(file_header.magic, input_map.buffer + file_header.cursor, 8);
      file_header.cursor = file_header.cursor + 8;
-
-     memcpy(file_header.label_num, input_map.buffer + file_header.cursor, 2 * sizeof(uint32_t));
-     file_header.label_num[0] = ntohl(file_header.label_num[0]);
-     file_header.label_num[1] = ntohl(file_header.label_num[1]);
-     file_header.cursor = file_header.cursor + (2 * sizeof(uint32_t));
-
-     for (uint32_t i=0; i<file_header.label_num[0]; ++i) {
-          uint32_t offset = ntohl(((uint32_t *)(input_map.buffer + file_header.cursor))[0]);
-          uint32_t index = ntohl(((uint32_t *)(input_map.buffer + file_header.cursor))[1]);
-
-          file_header.cursor = file_header.cursor + (2 * sizeof(uint32_t));
-
-          file_header.labels[index] = offset;
-     }
 
      file_header.code_size = ntohl(((uint32_t *)(input_map.buffer + file_header.cursor))[0]);
      file_header.extra_flags = ntohl(((uint32_t *)(input_map.buffer + file_header.cursor))[1]);
@@ -101,26 +84,6 @@ main(int argc, char *argv[]) {
           return 1;
      }
 
-     if (file_header.label_num[0] != file_header.label_num[1]
-          || 256 <= file_header.label_num[0]
-          || 256 <= file_header.label_num[1]) {
-          fprintf(stderr, "malformed file\n");
-          file_map_close(&input_map);
-          return 1;
-     }
-
-     for (int i=0; i<256; ++i) {
-          if (UINT32_MAX == file_header.labels[i]) {
-               continue;
-          }
-
-          if (file_header.labels[i] > file_header.code_size) {
-               fprintf(stderr, "malformed file\n");
-               file_map_close(&input_map);
-               return 1;
-          }
-     }
-
      struct Program program = { 0 };
      program.code = input_map.buffer + file_header.cursor;
 
@@ -128,6 +91,8 @@ main(int argc, char *argv[]) {
           program.opcode = ((uint8_t)program.code[program.counter]) % 32;
 
           if (0 != opcode_has_parameter(program.opcode)) {
+               int parasize = opcode_parameter_size(program.opcode);
+
                program.counter = program.counter + 1;
 
                if (program.counter >= file_header.code_size) {
@@ -137,18 +102,35 @@ main(int argc, char *argv[]) {
                     continue;
                }
 
-               program.parameter = program.code[program.counter];
+               if (1 == parasize) {
+                    program.parameter = program.code[program.counter];
+                    program.extended_parameter = 0;
+               } else {
+                    program.parameter = 0;
+
+                    uint8_t bytes[4] = {
+                         program.code[program.counter + 0],
+                         program.code[program.counter + 1],
+                         program.code[program.counter + 2],
+                         program.code[program.counter + 3],
+                    };
+
+                    uint32_t sw = 0;
+                    memcpy(&sw, bytes, 4);
+
+                    program.extended_parameter = ntohl(sw);
+               }
           }
 
 #ifdef OPCODE_TRACING
           if (0 != opcode_has_parameter(program.opcode)) {
                fprintf(stderr,
-                       "%s %d\n",
+                       "[%s %d]\n",
                        opcode_name(program.opcode),
                        program.parameter);
           } else {
                fprintf(stderr,
-                       "%s\n",
+                       "[%s]\n",
                        opcode_name(program.opcode));
           }
 #endif
@@ -204,29 +186,31 @@ main(int argc, char *argv[]) {
                break;
           case LBL:
                // this opcode should never be found since labels are
-               // compiled in the header.
+               // compiled in the code.
                // let's fail as hard as we can.
                abort();
                break;
           case JMP:
                program.result.code = EVAL_OK;
-               if (UINT32_MAX == file_header.labels[program.parameter]) {
+               if (UINT32_MAX == program.extended_parameter) {
                     program.result.code = EVAL_ERROR;
                } else {
                     // memo: subtract 1 because the counter is
                     // increased at the end of the loop
-                    program.counter = file_header.labels[program.parameter] - 1;
+                    program.counter = program.extended_parameter - 1;
                }
-               break;
-          case TRM:
-               program.result.code = EVAL_OK;
-               program.counter = file_header.code_size;
                break;
           case EQL:
                program.result = eval_eql(program.abyss, program.parameter);
                if (EVAL_NO == program.result.code) {
                     // skip the next instruction
                     program.counter = program.counter + 1;
+                    program.opcode = ((uint8_t)program.code[program.counter]) % 32;
+
+                    if (0 != opcode_has_parameter(program.opcode)) {
+                         int size = opcode_parameter_size(program.opcode);
+                         program.counter = program.counter + size;
+                    }
                }
                // reset the result to avoid exiting the program
                program.result.code = EVAL_OK;
@@ -236,6 +220,12 @@ main(int argc, char *argv[]) {
                if (EVAL_NO == program.result.code) {
                     // skip the next instruction
                     program.counter = program.counter + 1;
+                    program.opcode = ((uint8_t)program.code[program.counter]) % 32;
+
+                    if (0 != opcode_has_parameter(program.opcode)) {
+                         int size = opcode_parameter_size(program.opcode);
+                         program.counter = program.counter + size;
+                    }
                }
                // reset the result to avoid exiting the program
                program.result.code = EVAL_OK;
@@ -245,6 +235,12 @@ main(int argc, char *argv[]) {
                if (EVAL_NO == program.result.code) {
                     // skip the next instruction
                     program.counter = program.counter + 1;
+                    program.opcode = ((uint8_t)program.code[program.counter]) % 32;
+
+                    if (0 != opcode_has_parameter(program.opcode)) {
+                         int size = opcode_parameter_size(program.opcode);
+                         program.counter = program.counter + size;
+                    }
                }
                // reset the result to avoid exiting the program
                program.result.code = EVAL_OK;
@@ -254,9 +250,19 @@ main(int argc, char *argv[]) {
                if (EVAL_NO == program.result.code) {
                     // skip the next instruction
                     program.counter = program.counter + 1;
+                    program.opcode = ((uint8_t)program.code[program.counter]) % 32;
+
+                    if (0 != opcode_has_parameter(program.opcode)) {
+                         int size = opcode_parameter_size(program.opcode);
+                         program.counter = program.counter + size;
+                    }
                }
                // reset the result to avoid exiting the program
                program.result.code = EVAL_OK;
+               break;
+          case TRM:
+               program.result.code = EVAL_OK;
+               program.counter = file_header.code_size;
                break;
           default:
                opcode_error(program.opcode, program.parameter);
