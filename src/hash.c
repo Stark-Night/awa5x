@@ -22,8 +22,8 @@
 #include "hash.h"
 
 static size_t
-hash_key_calc(const char *key) {
-     return (strlen(key) % HASH_BUCKETS);
+hash_key_calc(const char *key, size_t keysize) {
+     return (keysize % HASH_BUCKETS);
 }
 
 struct Hash
@@ -40,7 +40,7 @@ hash_insert(struct Hash hash, const void *key, size_t keysize, uint32_t value) {
      memcpy(item->dupkey, key, keysize);
      item->state = HASH_ITEM_VALID;
 
-     size_t lkey = hash_key_calc(key);
+     size_t lkey = hash_key_calc(key, keysize);
      if (NULL != hash.list[lkey]) {
           item->next = hash.list[lkey];
      }
@@ -53,7 +53,7 @@ struct HashItem
 hash_retrieve(struct Hash hash, const void *key, size_t keysize) {
      struct HashItem dup = { 0 };
 
-     size_t lkey = hash_key_calc(key);
+     size_t lkey = hash_key_calc(key, keysize);
      if (NULL == hash.list[lkey]) {
           return dup;
      }
