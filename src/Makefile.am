@@ -33,7 +33,7 @@ awa5c_SOURCES = awa5c.c
 awa5c_LDADD = libfilemap.a libutf8.a libgrow.a libhash.a libgap.a libopcodes.a
 
 awa5p_SOURCES = awa5p.c
-awa5p_LDADD = libfilemap.a libutf8.a libgrow.a
+awa5p_LDADD = libfilemap.a libutf8.a libgrow.a libopcodes.a
 
 if HAVE_WAPI
 awa5_LDADD += -lws2_32

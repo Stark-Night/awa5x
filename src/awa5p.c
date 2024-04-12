@@ -24,6 +24,7 @@
 #include "filemap.h"
 #include "utf8.h"
 #include "grow.h"
+#include "opcodes.h"
 
 struct CurrentFile {
      struct FileMap map;
@@ -35,7 +36,15 @@ struct MatchState {
      int parameter;
      int include;
      int plain;
+     int txtlbl;
 };
+
+#define NOT_MATCH(state)                                                 \
+     ((0 == (state).opcode) &&                                          \
+      (0 == (state).parameter) &&                                       \
+      (0 == (state).include) &&                                         \
+      (0 == (state).plain) &&                                           \
+      (0 == (state).txtlbl))
 
 #define NOP_AWA "awa awa awa awa awa"
 #define PRN_AWA "awa awa awa awawa"
@@ -56,9 +65,11 @@ struct MatchState {
 #define LBL_AWA "~wa awa awa awa awa"
 #define JMP_AWA "~wa awa awa awawa"
 #define EQL_AWA "~wa awa awawa awa"
-#define LSS_AWA "~wa awawa awa awa"
-#define GR8_AWA "~wa awawa awawa"
-#define EQZ_AWA "~wa awawawa awa"
+#define LSS_AWA "~wa awa awawawa"
+#define GR8_AWA "~wa awawa awa awa"
+#define EQZ_AWA "~wa awawa awawa"
+#define TLB_AWA "~wa awawawa awa"
+#define JTL_AWA "~wa awawawawa"
 #define TRM_AWA "~wawawawawa"
 
 static int8_t opcode_bytes[][3] = {
@@ -84,8 +95,8 @@ static int8_t opcode_bytes[][3] = {
      { 0x4C, 0x53, 0x53 },
      { 0x47, 0x52, 0x38 },
      { 0x45, 0x51, 0x5A },
-     { 0x00, 0x00, 0x00 },
-     { 0x00, 0x00, 0x00 },
+     { 0x54, 0x4C, 0x42 },
+     { 0x4A, 0x54, 0x4C },
      { 0x00, 0x00, 0x00 },
      { 0x00, 0x00, 0x00 },
      { 0x00, 0x00, 0x00 },
@@ -118,6 +129,8 @@ static int8_t opcode_bytes[][3] = {
 #define LSS_BYTES opcode_bytes[19]
 #define GR8_BYTES opcode_bytes[20]
 #define EQZ_BYTES opcode_bytes[21]
+#define TLB_BYTES opcode_bytes[22]
+#define JTL_BYTES opcode_bytes[23]
 #define TRM_BYTES opcode_bytes[31]
 
 // this is defined globally because the large requested size can, in
@@ -217,6 +230,18 @@ opcode_line_check(struct GrowBuffer *line) {
           if (0 == memcmp(EQZ_BYTES, opcode, 3)) {
                return fprintf(stdout, "%s", EQZ_AWA);
           }
+
+          if (0 == memcmp(TLB_BYTES, opcode, 3)) {
+               return fprintf(stdout, "%s", TLB_AWA);
+          }
+
+          if (0 == memcmp(JTL_BYTES, opcode, 3)) {
+               return fprintf(stdout, "%s", JTL_AWA);
+          }
+
+          if (0 == memcmp(TRM_BYTES, opcode, 3)) {
+               return fprintf(stdout, "%s", TRM_AWA);
+          }
      }
 
      fprintf(stderr, "invalid opcode: {%s}", line->bytes);
@@ -294,6 +319,56 @@ include_line_check(struct GrowBuffer *line) {
      return file;
 }
 
+static int
+txtlbl_line_check(struct GrowBuffer *line) {
+     if (0 == line->capacity || '\0' == line->bytes[0]) {
+          fprintf(stdout, "\n");
+          return 0;
+     }
+
+     uint8_t bytes[] = { 0x20, 0x5B, 0x20, 0x5D };
+     uint8_t masks[8] = { 128, 64, 32, 16, 8, 4, 2, 1 };
+
+     fwrite(bytes + 0, 1, 2, stdout);
+
+     for (size_t i=0; i<line->capacity-1; ++i) {
+          uint8_t letter = line->bytes[i];
+          uint32_t character = INT8_MAX;
+
+          // iterate over the alphabet to find the letter
+          // there is probably a better way, but I can't think of it right now
+          for (uint8_t i=0; i<NALNUM; ++i) {
+               if (ALPHABET[i] != letter) {
+                    continue;
+               }
+
+               character = i;
+               break;
+          }
+
+          if (character > NALNUM) {
+               fprintf(stderr,
+                       "invalid parameter; must be within the alphabet: %c\n",
+                       letter);
+               fprintf(stdout, "\n");
+
+               return 1;
+          }
+
+          fprintf(stdout, " %s", (character & masks[0]) ? "~wa" : "awa");
+
+          for (int i=1; i<8; ++i) {
+               fprintf(stdout, "%s", (character & masks[i]) ? "wa" : " awa");
+          }
+     }
+
+     fwrite(bytes + 2, 1, 2, stdout);
+
+     fprintf(stdout, "\n");
+
+     return 0;
+}
+
 int
 main(int argc, char *argv[]) {
      if (argc < 2) {
@@ -327,8 +402,7 @@ main(int argc, char *argv[]) {
                // start of opcode check
                if (IS_B(decoded)) {
                     // only if not already in a match state
-                    if (0 == match_state.opcode && 0 == match_state.parameter
-                        && 0 == match_state.include && 0 == match_state.plain) {
+                    if (NOT_MATCH(match_state)) {
                          // start opcode match
                          match_state.opcode = 1;
 
@@ -340,8 +414,7 @@ main(int argc, char *argv[]) {
                // start of include check
                if (IS_G(decoded)) {
                     // only if not already in a match state
-                    if (0 == match_state.opcode && 0 == match_state.parameter
-                        && 0 == match_state.include && 0 == match_state.plain) {
+                    if (NOT_MATCH(match_state)) {
                          // start include match
                          match_state.include = 1;
 
@@ -350,11 +423,33 @@ main(int argc, char *argv[]) {
                     }
                }
 
+               // start of text label check
+               if (IS_OB(decoded)) {
+                    // only if not already in a match state or as a parameter
+                    if (NOT_MATCH(match_state) || 1 == match_state.parameter) {
+                         match_state.txtlbl = 1;
+                    }
+
+                    // go to next symbol
+                    continue;
+               }
+
+               // end of text label check
+               if (IS_CB(decoded)) {
+                    // only if we are matching a label
+                    if (1 == match_state.txtlbl) {
+                         // stop matching
+                         match_state.txtlbl = 2;
+                    }
+
+                    // go to next symbol
+                    continue;
+               }
+
                // start of keeping the line as-is
                if (!IS_S(decoded)) {
                     // only if not already in a match state
-                    if (0 == match_state.opcode && 0 == match_state.parameter
-                        && 0 == match_state.include && 0 == match_state.plain) {
+                    if (NOT_MATCH(match_state)) {
                          // start plain text match
                          match_state.plain = 1;
 
@@ -386,6 +481,32 @@ main(int argc, char *argv[]) {
                     // at end of line add a newline in the output too
                     if (IS_N(decoded)) {
                          fprintf(stdout, "\n");
+                    }
+
+                    // go to next symbol
+                    continue;
+               }
+
+               // check text label match
+               // must go before parameter since it can clash
+               if (0 != match_state.txtlbl) {
+                    // add to line buffer if not space
+                    if (!IS_S(decoded)) {
+                         buffer = append_buffer(buffer, &decoded.point, decoded.bytes);
+                    }
+
+                    // try to match it
+                    if (2 == match_state.txtlbl) {
+                         buffer = append_buffer(buffer, "\0", 1);
+                         txtlbl_line_check(&buffer);
+
+                         buffer = reset_buffer(buffer);
+                         match_state.txtlbl = 0;
+
+                         if (0 != match_state.parameter) {
+                              // reset parameter state if expected to
+                              match_state.parameter = 0;
+                         }
                     }
 
                     // go to next symbol
