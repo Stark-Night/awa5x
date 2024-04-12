@@ -260,12 +260,31 @@ main(int argc, char *argv[]) {
                // reset the result to avoid exiting the program
                program.result.code = EVAL_OK;
                break;
+          case TLB:
+               // this opcode should never be found since labels are
+               // compiled in the code.
+               // let's fail as hard as we can.
+               abort();
+               break;
+          case JTL:
+               program.result.code = EVAL_OK;
+               if (UINT32_MAX == program.extended_parameter) {
+                    program.result.code = EVAL_ERROR;
+               } else {
+                    // memo: subtract 1 because the counter is
+                    // increased at the end of the loop
+                    program.counter = program.extended_parameter - 1;
+               }
+               break;
           case TRM:
                program.result.code = EVAL_OK;
                program.counter = file_header.code_size;
                break;
           default:
-               opcode_error(program.opcode, program.parameter);
+               opcode_error(program.opcode,
+                            (1 == opcode_parameter_size(program.opcode)) ?
+                            program.parameter :
+                            program.extended_parameter);
                break;
           }
 
@@ -274,7 +293,10 @@ main(int argc, char *argv[]) {
           }
 
           if (EVAL_ERROR == program.result.code) {
-               opcode_error(program.opcode, program.parameter);
+               opcode_error(program.opcode,
+                            (1 == opcode_parameter_size(program.opcode)) ?
+                            program.parameter :
+                            program.extended_parameter);
                program.counter = file_header.code_size;
           }
 

@@ -267,3 +267,21 @@ EOF
 out=`./awa5 test-eval-cc`
 [ "x$out" != 'xAA' ] && echo 'run test 12' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
 rm -f test-eval-src test-eval-cc
+
+cat <<EOF > ./test-eval-src
+;; test named label & jump
+awa
+
+awa awawa awawa awa awa awa awa awa awa awawa
+~wa awawawawa [awa awa awa awa awa awa awa awa]
+awa awa awa awawa
+
+~wa awawawa awa [awa awa awa awa awa awa awa awa]
+awa awawa awawa awa awa awa awa awa awa awa awa
+awa awa awa awawa
+EOF
+./awa5c ./test-eval-src > ./test-eval-cc
+[ $? != 0 ] && echo 'compile test 13' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
+out=`./awa5 test-eval-cc`
+[ "x$out" != 'xA' ] && echo 'run test 13' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
+rm -f test-eval-src test-eval-cc
