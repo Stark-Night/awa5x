@@ -1,3 +1,8 @@
+2024-04-12 Stark Night <starknightawawa@gmail.com>
+	* 1.2.0
+	Introduce text labels with respective opcodes.
+	Squashed a few limited-impact bugs.
+
 2024-04-09 Stark Night <starknightawawa@gmail.com>
 	* 1.1.0
 	Change how comparisons work based on feedback.
