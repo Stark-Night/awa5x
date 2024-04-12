@@ -40,8 +40,8 @@ struct Status {
      int label;
      int label_use;
      int text_label_open;
-     int text_label_close;
      int text_label_store;
+     int text_label_use;
      struct UTF8Result parts[5];
      int parts_cursor;
      uint32_t position;
@@ -76,7 +76,7 @@ main(int argc, char *argv[]) {
      }
 
      struct Status cstatus = { 0 };
-     cstatus.preamble = 3;
+     cstatus.preamble = 4;
 
      struct Value cvalue = { 0 };
      cvalue.target = 5;
@@ -100,24 +100,43 @@ main(int argc, char *argv[]) {
                continue;
           }
 
-          if (!IS_A(decoded) && !IS_W(decoded) & !IS_T(decoded) && !IS_S(decoded)) {
+          if (!IS_A(decoded)
+              && !IS_W(decoded)
+              && !IS_T(decoded)
+              && !IS_S(decoded)
+              && !IS_OB(decoded)
+              && !IS_CB(decoded)) {
                cursor = cursor + decoded.bytes;
                continue;
           }
 
           if (0 < cstatus.preamble) {
+               int lastline = (1 == cstatus.preamble);
+
                switch (cstatus.preamble) {
-               case 3:
+               case 4:
                     cstatus.preamble = cstatus.preamble - ((IS_A(decoded)) ? 1 : 0);
                     break;
-               case 2:
+               case 3:
                     cstatus.preamble = cstatus.preamble - ((IS_W(decoded)) ? 1 : 0);
                     break;
-               case 1:
+               case 2:
                     cstatus.preamble = cstatus.preamble - ((IS_A(decoded)) ? 1 : 0);
+                    break;
+               case 1:
+                    cstatus.preamble = cstatus.preamble - ((IS_S(decoded)) ? 1 : 0);
+                    // somewhat of a hack, but this space is required
+                    // to be read as part of the normal parsing,
+                    // not in the preamble.
+                    cursor = cursor - decoded.bytes;
                     break;
                default:
                     break;
+               }
+
+               if (1 == cstatus.preamble && lastline) {
+                    fprintf(stderr, "not a valid program\n");
+                    return 1;
                }
 
                cursor = cursor + decoded.bytes;
@@ -127,16 +146,28 @@ main(int argc, char *argv[]) {
           cstatus.parts[cstatus.parts_cursor] = decoded;
           cstatus.parts_cursor = cstatus.parts_cursor + 1;
 
-          if (IS_OB(cstatus.parts[0])) {
+          if (IS_OB(decoded)) {
                // start text label processing
                cstatus.text_label_open = 1;
-               cvalue.target = 8;
-               cstatus.parts_cursor = 0;
-          } else if (1 == cstatus.text_label_open && IS_CB(cstatus.parts[0])) {
+
+               uint8_t bytes[2] = { 0x20, 0x00 };
+               struct UTF8Result space = utf8_decode(bytes);
+
+               cstatus.parts[cstatus.parts_cursor - 1] = space;
+          } else if (IS_CB(decoded)) {
+               // end of text label processing
                cstatus.text_label_open = 0;
-               cstatus.text_label_close = 1;
-               cstatus.parts_cursor = 0;
-          } else if (IS_S(cstatus.parts[0]) && cstatus.parts_cursor >= 4) {
+               if (8 == cvalue.target) {
+                    cvalue.target = 5;
+               }
+
+               uint8_t bytes[2] = { 0x20, 0x00 };
+               struct UTF8Result space = utf8_decode(bytes);
+
+               cstatus.parts[cstatus.parts_cursor - 1] = space;
+          }
+
+          if (IS_S(cstatus.parts[0]) && cstatus.parts_cursor >= 4) {
                // maybe awa or ~wa
                if (IS_A(cstatus.parts[1]) && IS_W(cstatus.parts[2]) && IS_A(cstatus.parts[3])) {
                     // awa (= 0)
@@ -180,7 +211,9 @@ main(int argc, char *argv[]) {
                        cstatus.parts[2].point,
                        cstatus.parts[3].point);
                cstatus.parts_cursor = 0;
-          } else if (cstatus.parts_cursor > 1 && IS_S(cstatus.parts[cstatus.parts_cursor - 2]) && IS_S(cstatus.parts[cstatus.parts_cursor - 1])) {
+          } else if (cstatus.parts_cursor > 1
+                     && IS_S(cstatus.parts[cstatus.parts_cursor - 2])
+                     && IS_S(cstatus.parts[cstatus.parts_cursor - 1])) {
                // multiple spaces in a row become only one
                cstatus.parts_cursor = cstatus.parts_cursor - 1;
           }
@@ -189,6 +222,45 @@ main(int argc, char *argv[]) {
                int8_t value = (5 == cvalue.target) ?
                     ((uint8_t)cvalue.value % 32) :
                     (int8_t)cvalue.value;
+
+               if (1 == cstatus.text_label_store && 5 == cvalue.target) {
+                    // if there is a pending text label associate it
+                    // before dispatching.
+                    cstatus.text_label_store = 0;
+
+                    cbuffers.text_parts = append_buffer(cbuffers.text_parts, "\0", 1);
+
+                    cbuffers.text_labels = hash_insert(cbuffers.text_labels,
+                                                       cbuffers.text_parts.bytes,
+                                                       cbuffers.text_parts.capacity,
+                                                       cbuffers.labels[1001]);
+                    cbuffers.text_parts = reset_buffer(cbuffers.text_parts);
+               } else if (1 == cstatus.text_label_use && 5 == cvalue.target) {
+                    // if there is a pending label to be used, store
+                    // label informations to be used later, when all
+                    // the code has been processed.
+                    cstatus.text_label_use = 0;
+
+                    cbuffers.text_parts = append_buffer(cbuffers.text_parts, "\0", 1);
+
+                    uint32_t t = 1;
+                    uint32_t s = cbuffers.text_parts.capacity;
+
+                    cbuffers.label_intervals = append_buffer(cbuffers.label_intervals,
+                                                             &cbuffers.outcursor,
+                                                             sizeof(uint32_t));
+                    cbuffers.label_intervals = append_buffer(cbuffers.label_intervals,
+                                                             &t,
+                                                             sizeof(uint32_t));
+                    cbuffers.label_intervals = append_buffer(cbuffers.label_intervals,
+                                                             &s,
+                                                             sizeof(uint32_t));
+                    cbuffers.label_intervals = append_buffer(cbuffers.label_intervals,
+                                                             cbuffers.text_parts.bytes,
+                                                             s);
+
+                    cbuffers.outcursor = cbuffers.outcursor + 4;
+               }
 
                if (0 == cstatus.label && 5 == cvalue.target && LBL == value) {
                     // save the label destination.
@@ -209,10 +281,14 @@ main(int argc, char *argv[]) {
                     // all the code has been processed.
                     cstatus.label_use = 0;
 
+                    uint32_t t = 0;
                     uint32_t s = 1;
 
                     cbuffers.label_intervals = append_buffer(cbuffers.label_intervals,
                                                              &cbuffers.outcursor,
+                                                             sizeof(uint32_t));
+                    cbuffers.label_intervals = append_buffer(cbuffers.label_intervals,
+                                                             &t,
                                                              sizeof(uint32_t));
                     cbuffers.label_intervals = append_buffer(cbuffers.label_intervals,
                                                              &s,
@@ -230,18 +306,6 @@ main(int argc, char *argv[]) {
                } else if (1 == cstatus.text_label_open && 8 == cvalue.target) {
                     // store the value as a byte of the label name
                     cbuffers.text_parts = append_buffer(cbuffers.text_parts, &value, 1);
-               } else if (1 == cstatus.text_label_close && 1 == cstatus.text_label_store && 8 == cvalue.target) {
-                    // now associate the destination with the name of the label.
-                    cstatus.text_label_close = 0;
-                    cstatus.text_label_store = 0;
-
-                    cbuffers.text_parts = append_buffer(cbuffers.text_parts, "\0", 1);
-
-                    cbuffers.text_labels = hash_insert(cbuffers.text_labels,
-                                                       cbuffers.text_parts.bytes,
-                                                       cbuffers.text_parts.capacity,
-                                                       cbuffers.labels[1001]);
-                    cbuffers.text_parts = reset_buffer(cbuffers.text_parts);
                } else {
                     // save opcode to be output later.
                     cbuffers.output = gap_append(cbuffers.output, &value, 1);
@@ -249,6 +313,9 @@ main(int argc, char *argv[]) {
 
                     if (JMP == value) {
                          cstatus.label_use = 1;
+                    }
+                    if (JTL == value) {
+                         cstatus.text_label_use = 1;
                     }
                }
 
@@ -303,15 +370,33 @@ main(int argc, char *argv[]) {
           memcpy(&position, cbuffers.label_intervals.bytes + i, 4);
           i = i + 4;
 
+          uint32_t type = 0;
+          memcpy(&type, cbuffers.label_intervals.bytes + i, 4);
+          i = i + 4;
+
           uint32_t s = 0;
           memcpy(&s, cbuffers.label_intervals.bytes + i, 4);
           i = i + 4;
 
-          uint32_t value = 0;
-          memcpy(&value, cbuffers.label_intervals.bytes + i, s);
-          i = i + s;
+          uint32_t address = UINT32_MAX;
+          if (0 == type) {
+               uint8_t value = 0;
+               memcpy(&value, cbuffers.label_intervals.bytes + i, s);
+               i = i + s;
 
-          uint32_t address = ntohl(cbuffers.labels[value]);
+               address = htonl(cbuffers.labels[value]);
+          } else {
+               struct HashItem item = hash_retrieve(cbuffers.text_labels,
+                                                    cbuffers.label_intervals.bytes + i,
+                                                    s);
+               if (HASH_ITEM_INVALID == item.state) {
+                    item.value = UINT32_MAX;
+               }
+
+               address = htonl(item.value);
+
+               i = i + s;
+          }
 
           cbuffers.output = gap_move(cbuffers.output, position);
           cbuffers.output = gap_append(cbuffers.output,
