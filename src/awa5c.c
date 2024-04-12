@@ -259,6 +259,8 @@ main(int argc, char *argv[]) {
                                                              cbuffers.text_parts.bytes,
                                                              s);
 
+                    cbuffers.text_parts = reset_buffer(cbuffers.text_parts);
+
                     cbuffers.outcursor = cbuffers.outcursor + 4;
                }
 
