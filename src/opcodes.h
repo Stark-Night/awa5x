@@ -73,12 +73,12 @@ opcode_parameter_size(int8_t opcode);
      do {                                               \
           if (0 != opcode_has_parameter((opcode))) {    \
                fprintf(stderr,                          \
-                       "%s %d\n",                       \
+                       "opcode error: %s %d\n",         \
                        opcode_name((opcode)),           \
                        (parameter));                    \
           } else {                                      \
                fprintf(stderr,                          \
-                       "%s\n",                          \
+                       "opcode error: %s\n",            \
                        opcode_name((opcode)));          \
           }                                             \
      } while (0)
