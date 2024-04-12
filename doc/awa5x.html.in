@@ -179,6 +179,8 @@
         <p>It is possible to write &quot;explicit comments&quot;. Normally, words which are now <em>awa</em>, <em>wa</em> or <em>~wa</em> are ignored by the compiler, however some common words like <em>away</em>, <em>awake</em> or <em>forwards</em> can confuse it. To ensure code is compiled as expected, anything between the <code>;</code> character (UTF-8 point <code>0x3B</code>) and the end of the line is completely ignored during compilation.</p>
 
         <p>This suite provides a tool to process a file with more human-readable directives and generate AWA5.0 source code.</p>
+
+        <p>Since 1.2.0, the opcode <code>TLB</code> can be used to create textual labels. These labels must be enclosed between the character <code>[</code> (UTF-8 point <code>0x5B</code>) and the character <code>]</code> (UTF-8 point <code>0x5D</code>). The content of the label are AWASCII characters in their awatism representation, that is, to write the textual label <code>[A]</code> one must write it as <code>[awa awa awa awa awa awa awa awa]</code>.</p>
       </section>
 
       <section aria-labelledby="compiling">
