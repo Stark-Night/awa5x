@@ -70,6 +70,8 @@ struct MatchState {
 #define EQZ_AWA "~wa awawa awawa"
 #define TLB_AWA "~wa awawawa awa"
 #define JTL_AWA "~wa awawawawa"
+#define CLL_AWA "~wawa awa awa awa"
+#define RET_AWA "~wawa awa awawa"
 #define TRM_AWA "~wawawawawa"
 
 static int8_t opcode_bytes[][3] = {
@@ -97,8 +99,8 @@ static int8_t opcode_bytes[][3] = {
      { 0x45, 0x51, 0x5A },
      { 0x54, 0x4C, 0x42 },
      { 0x4A, 0x54, 0x4C },
-     { 0x00, 0x00, 0x00 },
-     { 0x00, 0x00, 0x00 },
+     { 0x43, 0x4C, 0x4C },
+     { 0x52, 0x45, 0x54 },
      { 0x00, 0x00, 0x00 },
      { 0x00, 0x00, 0x00 },
      { 0x00, 0x00, 0x00 },
@@ -131,6 +133,8 @@ static int8_t opcode_bytes[][3] = {
 #define EQZ_BYTES opcode_bytes[21]
 #define TLB_BYTES opcode_bytes[22]
 #define JTL_BYTES opcode_bytes[23]
+#define CLL_BYTES opcode_bytes[24]
+#define RET_BYTES opcode_bytes[25]
 #define TRM_BYTES opcode_bytes[31]
 
 // this is defined globally because the large requested size can, in
@@ -237,6 +241,14 @@ opcode_line_check(struct GrowBuffer *line) {
 
           if (0 == memcmp(JTL_BYTES, opcode, 3)) {
                return fprintf(stdout, "%s", JTL_AWA);
+          }
+
+          if (0 == memcmp(CLL_BYTES, opcode, 3)) {
+               return fprintf(stdout, "%s", CLL_AWA);
+          }
+
+          if (0 == memcmp(RET_BYTES, opcode, 4)) {
+               return fprintf(stdout, "%s", RET_AWA);
           }
 
           if (0 == memcmp(TRM_BYTES, opcode, 3)) {
