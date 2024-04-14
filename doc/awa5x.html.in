@@ -116,6 +116,10 @@
           margin-top: 0.5em;
       }
 
+      li > ol, li > ul {
+          margin-top: 0.5em;
+      }
+
       #gnu-free-documentation-license h2 {
           font-size: 1em;
       }
@@ -146,7 +150,15 @@
           <ol>
             <li><a href="#table-of-contents">Table of contents</a></li>
             <li><a href="#introduction">Introduction</a></li>
-            <li><a href="#differences">Differences with the original specifications</a></li>
+            <li><a href="#differences">Differences with the original specifications</a>
+              <ol>
+                <li><a href="#differences-list">List of new opcodes</a></li>
+                <li><a href="#differences-parameters">Extended parameters</a></li>
+                <li><a href="#differences-tools">Tools and development flow</a></li>
+                <li><a href="#differences-flow">Program flow control</a></li>
+                <li><a href="#differences-function">Jumps with return to caller</a></li>
+              </ol>
+            </li>
             <li><a href="#compiling">Compiling AWA5.0 programs</a></li>
             <li><a href="#executing">Executing compiled AWA5.0 programs</a></li>
             <li><a href="#preprocessor">The awa5p preprocessor</a></li>
@@ -168,19 +180,73 @@
       <section aria-labelledby="differences">
         <h1 id="differences">Differences with the original specifications</h1>
 
+        <p>The awa5x suite provide a number of differences from the original specifications to extend what the language is capable of. In particular, a number of new opcodes have been added.</p>
+
         <p>The content of this section will change as this implementation and the original specifications diverge over time.</p>
 
-        <p>All opcodes require 8-bit parameters. In the original specifications, only the <code>BLO</code> opcode is able to handle an 8-bit value while every other operation can operate only on 5-bit values.</p>
+        <section aria-labelledby="differences-list">
+          <h2 id="differences-list">List of new opcodes</h2>
 
-        <p>A new <code>EQZ</code> opcode (hexadecimal code <code>0x15</code>) has been added for fast zero-equality comparisons. Originally, a program would need to push a bubble with a value of zero before being able to make a comparison, then popping the bubble before continuing execution. This opcode removes the need for both pushing and popping.</p>
+          <p>This section provides a simple list of all the new opcodes provided by awa5x. It is meant to be used as a quick reference; explanations about each opcode is provided later in this manual.</p>
 
-        <p>The code is now compiled before being executed. The compilation is designed to make recognizing opcodes faster as the syntax is a textual representation of reset (<code>awa</code>) or set (<code>wa</code>, <code>~wa</code>) bits, so the executor can just compare bits instead of parsing text. Theoretically, it is also possible to write a compiler generating a natively executable binary instead of bytecode for a virtual machine.</p>
+          <p>The new opcodes are:</p>
 
-        <p>It is possible to write &quot;explicit comments&quot;. Normally, words which are not <em>awa</em>, <em>wa</em> or <em>~wa</em> are ignored by the compiler, however some common words like <em>away</em>, <em>awake</em> or <em>forwards</em> can confuse it. To ensure code is compiled as expected, anything between the <code>;</code> character (UTF-8 point <code>0x3B</code>) and the end of the line is completely ignored during compilation.</p>
+          <ul>
+            <li><code>EQZ</code></li>
+            <li><code>TLB</code></li>
+            <li><code>JTL</code></li>
+            <li><code>CLL</code></li>
+            <li><code>RET</code></li>
+          </ul>
+        </section>
 
-        <p>This suite provides a tool to process a file with more human-readable directives and generate AWA5.0 source code.</p>
+        <section aria-labelledby="differences-parameters">
+          <h2 id="differences-parameters">Extended parameters</h2>
 
-        <p>Since 1.2.0, the opcode <code>TLB</code> can be used to create textual labels. These labels must be enclosed between the character <code>[</code> (UTF-8 point <code>0x5B</code>) and the character <code>]</code> (UTF-8 point <code>0x5D</code>). The content of the label are AWASCII characters in their awatism representation, that is, to write the textual label <code>[A]</code> one must write it as <code>[awa awa awa awa awa awa awa awa]</code>.</p>
+          <p>awa5x extends opcode parameters so that every opcode accepting a parameter requires an 8-bit value.</p>
+
+          <p>In the original specification, only the <code>BLO</code> opcode is able to handle an 8-bit value, mostly because of AWASCII; other opcodes like <code>LBL</code> could only use up to 5 bits and thus only up to 31 values.</p>
+
+          <p>With this extension, every opcode is now able to operate on a value between -128 and 127 or between 0 and 255, based on whether a signed or unsigned value is expected.</p>
+        </section>
+
+        <section aria-labelledby="differences-tools">
+          <h2 id="differences-tools">Tools and development flow</h2>
+
+          <p>It is now necessary to compile AWA5 code before being able to execute it.</p>
+
+          <p>The compilation process is designed to make recognizing opcodes during execution faster; that is because the language syntax is a representation of reset (<code>awa</code>) or set (<code>wa</code>, <code>~wa</code>) bits, so the executor can just compare bytes instead of parsing text each time.</p>
+
+          <p>Theoretically, it is also possible to write a compiler generating a natively executable binary instead of bytecode for a virtual machine.</p>
+
+          <p>Other than a compiler and a virtual machine, the suite also provides a tool to process a file with more human-readable directives and generate AWA5 code automatically.</p>
+
+          <p>The compiler recognize &quot;explicit comments&quot; in a file. Normally, words and symbols which are not <em>awa</em>, <em>wa</em> or <em>~wa</em> are ignored; however, some commong words like <em>away</em>, <em>awake</em> or <em>forwards</em> can confuse the compiler. To ensure code is compiled as expected, anything between the <code>;</code> character (UTF-8 point <code>0x3B</code>) and the end of the line (identified by the UTF-8 point <code>0x0A</code>) will be completely ignored.</p>
+        </section>
+
+        <section aria-labelledby="differences-flow">
+          <h2 id="differences-flow">Program flow control</h2>
+
+          <p>The new <code>EQZ</code> opcode (hexadecimal value <code>0x15</code>) has been added for fast zero-equality comparisons. Originally, a program would need to push a bubble with a value of zero before being able to make a comparison, then popping the bubble before continuing execution. This opcode removes the need for both pushing and popping.</p>
+
+          <p>Since 1.2.0, the <code>TLB</code> opcode (hexadecimal value <code>0x16</code>) can be used to create textual labels.</p>
+
+          <p>Textual labels must be enclosed between the character <code>[</code> (UTF-8 point <code>0x5B</code>) and the character <code>]</code> (UTF-8 point <code>0x5D</code>). The contents of the label are AWASCII characters in their awatism representation, that is, to write the textual label <code>[A]</code> one must write it as <code>[awa awa awa awa awa awa awa awa]</code>.</p>
+
+          <p>The preprocessor tool will treat these labels as if they were written in their more-human-readable counterpart; thus, to ouput the label <code>[awa awa awa awa awa awa awa awa]</code> it is necessary to write it as <code>[A]</code>. Typing a label in its awatism form will simply be further expaded in more awatism.</p>
+
+          <p>The <code>JTL</code> opcode (hexadecimal value <code>0x17</code>) can then be used to jump to the given textual label, just like <code>JMP</code> does for non-textual labels.</p>
+        </section>
+
+        <section aria-labelledby="differences-function">
+          <h2 id="differences-function">Jumps with return to caller</h2>
+
+          <p>Since 1.3.0, the <code>CLL</code> opcode (hexadecimal value <code>0x18</code>) can be used to jump to a textual label while saving the address the program is jumping from.</p>
+
+          <p>This address is kept into a stack of saved addresses, each stored by a <code>CLL</code> instruction.</p>
+
+          <p>The <code>RET</code> opcode (hexadecimal value <code>0x19</code>) will jump back to the last saved address, no matter what happened in the meantime, removing it from the stack. This save-and-restore flow is commonly referred to as &quot;function calling&quot;.</p>
+        </section>
       </section>
 
       <section aria-labelledby="compiling">
