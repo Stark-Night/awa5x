@@ -48,6 +48,12 @@ struct Program {
      struct EvalResult result;
 };
 
+// this is defined globally because the large requested size can, in
+// some cases, generate runtime errors.
+#define ADDRESS_STACK_SIZE 1048576
+static uint32_t address_stack[ADDRESS_STACK_SIZE] = { 0 };
+static size_t address_stack_top  = 0;
+
 int
 main(int argc, char *argv[]) {
      if (argc < 2) {
@@ -274,6 +280,39 @@ main(int argc, char *argv[]) {
                     // memo: subtract 1 because the counter is
                     // increased at the end of the loop
                     program.counter = program.extended_parameter - 1;
+               }
+               break;
+          case CLL:
+               program.result.code = EVAL_OK;
+               if (UINT32_MAX == program.extended_parameter) {
+                    program.result.code = EVAL_ERROR;
+               } else if (ADDRESS_STACK_SIZE == address_stack_top) {
+                    fprintf(stderr, "too much recursion\n");
+                    abort();
+               } else {
+                    // add the size of the parameter too
+                    uint32_t address = program.counter +
+                         opcode_parameter_size(program.opcode);
+
+                    address_stack[address_stack_top] = address;
+                    address_stack_top = address_stack_top + 1;
+
+                    // memo: subtract 1 because the counter is
+                    // increased at the end of the loop
+                    program.counter = program.extended_parameter - 1;
+               }
+               break;
+          case RET:
+               program.result.code = EVAL_OK;
+               if (0 == address_stack_top) {
+                    program.result.code = EVAL_ERROR;
+               } else {
+                    uint32_t address = address_stack[address_stack_top - 1];
+                    address_stack_top = address_stack_top - 1;
+
+                    // memo: subtract 1 because the counter is
+                    // increased at the end of the loop
+                    program.counter = address - 1;
                }
                break;
           case TRM:

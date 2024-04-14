@@ -316,7 +316,7 @@ main(int argc, char *argv[]) {
                     if (JMP == value) {
                          cstatus.label_use = 1;
                     }
-                    if (JTL == value) {
+                    if (JTL == value || CLL == value) {
                          cstatus.text_label_use = 1;
                     }
                }

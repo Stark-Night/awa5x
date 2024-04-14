@@ -51,6 +51,10 @@
 #define TLB 0x16
 #define JTL 0x17
 
+// jump with return to caller, using textual labels
+#define CLL 0x18
+#define RET 0x19
+
 // this is the last valid opcode
 #define TRM 0x1F
 

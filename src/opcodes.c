@@ -46,6 +46,8 @@ opcode_name(int8_t opcode) {
      case EQZ: return "EQZ";
      case TLB: return "TLB";
      case JTL: return "JTL";
+     case CLL: return "CLL";
+     case RET: return "RET";
      case TRM: return "TRM";
      default:
           break;
@@ -63,6 +65,7 @@ opcode_has_parameter(int8_t opcode) {
      case JMP:
      case TLB:
      case JTL:
+     case CLL:
           return 1;
      default:
           break;
@@ -75,6 +78,7 @@ opcode_parameter_size(int8_t opcode) {
      switch (opcode) {
      case JMP:
      case JTL:
+     case CLL:
           return 4;
      default:
           break;
