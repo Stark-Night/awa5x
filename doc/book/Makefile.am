@@ -18,7 +18,8 @@ if HAVE_LATEX
 dist_doc_DATA = awa5x_book.pdf
 
 awa5x_book.pdf: $(srcdir)/main.tex
-	$(AM_V_GEN)$(LATEX) $<
+	$(AM_V_GEN)$(LATEX) --interaction=batchmode $<
+	$(AM_V_GEN)$(LATEX) --interaction=batchmode $<
 	$(AM_V_at)mv $(builddir)/main.pdf $(builddir)/awa5x_book.pdf
 
 CLEANFILES = awa5x_book.pdf main.aux main.log main.toc
