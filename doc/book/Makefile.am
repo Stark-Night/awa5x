@@ -14,12 +14,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-SUBDIRS = book
+if HAVE_LATEX
+dist_doc_DATA = awa5x_book.pdf
 
-dist_man1_MANS = awa5.1 awa5c.1 awa5p.1 awa5d.1
+awa5x_book.pdf: $(srcdir)/main.tex
+	$(AM_V_GEN)$(LATEX) $<
+	$(AM_V_at)mv $(builddir)/main.pdf $(builddir)/awa5x_book.pdf
 
-install-html-local:
-	$(MKDIR_P) $(DESTDIR)$(htmldir)
-	cp awa5x.html $(DESTDIR)$(htmldir)
-
-install-data-local: install-html-local
+CLEANFILES = awa5x_book.pdf main.aux main.log main.toc
+endif

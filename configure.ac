@@ -20,7 +20,7 @@ AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIRS([m4])
 AC_CONFIG_SRCDIR([src/awa5.c])
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile src/Makefile doc/Makefile doc/awa5x.html vendors/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile doc/Makefile doc/awa5x.html doc/book/Makefile vendors/Makefile])
 
 AM_INIT_AUTOMAKE([foreign tar-pax])
 AM_SILENT_RULES([yes])
@@ -36,6 +36,9 @@ AM_CONDITIONAL([HAVE_WAPI], [test "x$have_wapi" = "xyes"])
 
 AC_CHECK_FUNCS([getline], [getline_f=yes], [getline_f=no])
 AM_CONDITIONAL([HAVE_GETLINE], [test "x$getline_f" = "xyes"])
+
+AC_CHECK_PROGS([LATEX], [xelatex lualatex], [no])
+AM_CONDITIONAL([HAVE_LATEX], [test "x$have_latex" != "xno"])
 
 AC_ARG_ENABLE([debug],
   [AS_HELP_STRING([--enable-debug], [enable facilities to improve debugging])])
