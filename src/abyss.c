@@ -20,7 +20,7 @@
 #include <stdlib.h>
 #include "abyss.h"
 
-typedef int8_t (*bubble_plain_op)(
+typedef int32_t (*bubble_plain_op)(
      struct Bubble *b1, struct Bubble *b2);
 
 typedef int (*bubble_comparer)(
@@ -517,17 +517,17 @@ apply_plain_op(struct Abyss abyss, struct Bubble *b1, struct Bubble *b2, bubble_
      return page;
 }
 
-static int8_t
+static int32_t
 bubble_plain_sum(struct Bubble *b1, struct Bubble *b2) {
      return b1->value + b2->value;
 }
 
-static int8_t
+static int32_t
 bubble_plain_diff(struct Bubble *b1, struct Bubble *b2) {
      return b1->value - b2->value;
 }
 
-static int8_t
+static int32_t
 bubble_plain_mul(struct Bubble *b1, struct Bubble *b2) {
      return b1->value * b2->value;
 }
@@ -626,7 +626,7 @@ apply_div_op(struct Abyss abyss, struct Bubble *b1, struct Bubble *b2) {
           page = take_free_bubble(page.state);
           quotient = page.bubble;
 
-          div_t qr = div(b1->value, b2->value);
+          ldiv_t qr = ldiv(b1->value, b2->value);
           reminder->value = qr.rem;
           quotient->value = qr.quot;
 

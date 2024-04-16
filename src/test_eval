@@ -286,7 +286,6 @@ out=`./awa5 test-eval-cc`
 [ "x$out" != 'xA' ] && echo 'run test 13' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
 rm -f test-eval-src test-eval-cc
 
-
 cat <<EOF > ./test-eval-src
 ;; test call & return
 awa
@@ -305,4 +304,19 @@ EOF
 [ $? != 0 ] && echo 'compile test 14' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
 out=`./awa5 test-eval-cc`
 [ "x$out" != 'xWA' ] && echo 'run test 14' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
+rm -f test-eval-src test-eval-cc
+
+cat <<EOF > ./test-eval-src
+;; test large values
+awa
+
+awa awawa awawa awawawawawawawawa
+awa awawa awawa awawawawawawawawa
+awawawa awawa
+awa awa awawa awa
+EOF
+./awa5c ./test-eval-src > ./test-eval-cc
+[ $? != 0 ] && echo 'compile test 15' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
+out=`./awa5 test-eval-cc`
+[ "x$out" != 'x16129 ' ] && echo 'run test 15' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
 rm -f test-eval-src test-eval-cc

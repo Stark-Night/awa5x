@@ -20,7 +20,7 @@
 #include <stdint.h>
 
 struct Bubble {
-     int8_t value;
+     int32_t value;
      struct Bubble *head;
      struct Bubble *next;
 };
