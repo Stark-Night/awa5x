@@ -731,7 +731,7 @@ abyss_div(struct Abyss abyss) {
 }
 
 struct Bubble
-bubble_wrap(int8_t value) {
+bubble_wrap(int32_t value) {
      struct Bubble bubble = { 0 };
      bubble.value = value;
 

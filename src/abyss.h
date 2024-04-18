@@ -80,7 +80,7 @@ struct Abyss
 abyss_div(struct Abyss abyss);
 
 struct Bubble
-bubble_wrap(int8_t value);
+bubble_wrap(int32_t value);
 
 int
 bubble_double(struct Bubble bubble);

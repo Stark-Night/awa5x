@@ -174,7 +174,7 @@ eval_r3d(struct Abyss abyss, int8_t parameter) {
      long int cnum = strtol(result.state.exbuffer, &tail, 10);
 
      // again we loop until a valid input
-     while (NULL != tail && '\0' != tail[0] && (INT8_MIN > cnum || INT8_MAX < cnum)) {
+     while (NULL != tail && '\0' != tail[0] && (INT32_MIN > cnum || INT32_MAX < cnum)) {
           fprintf(stderr, "input out of range\n");
 
           bytes = getline(&(result.state.exbuffer), &(result.state.exsize), stdin);
@@ -187,7 +187,7 @@ eval_r3d(struct Abyss abyss, int8_t parameter) {
           cnum = strtol(result.state.exbuffer, &tail, 10);
      }
 
-     struct Bubble bubble = bubble_wrap((int8_t)cnum);
+     struct Bubble bubble = bubble_wrap((int32_t)cnum);
      result.code = EVAL_NEW_STATE;
      result.state = abyss_push(result.state, bubble);
 
