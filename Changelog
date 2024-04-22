@@ -1,3 +1,7 @@
+2024-04-22 Stark Night <starknightawawa@gmail.com>
+	* 1.3.2
+	Raise a limit to align opcode to previous version's behaviour.
+
 2024-04-16 Stark Night <starknightawawa@gmail.com>
 	* 1.3.1
 	Align to specifications.
