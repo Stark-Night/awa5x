@@ -113,19 +113,19 @@ each specifying an operation to be performed by the
 machine. Statements are executed in order from top to bottom and the
 program will terminate once the last command is reached.
 
-Every AWA5 program operates on a hidden \emph{stack} of values:
-whenever something is \emph{pushed} on the stack it will be considered
-the \emph{top} value; when programs \emph{pop} from the stack, this
-top value is removed. Pushing a value on the stack will not make the
-previous value disappear; rather, it will be stored \enquote{below}
-the top value until a pop command is executed. The stored value will
-then become the new top value.
+Every AWA5 program operates on a hidden stack of \enquote{bubbles}
+called \emph{abyss}: whenever something is \emph{pushed} inside the
+abyss it will be considered the \emph{top} bubble; when programs
+\emph{pop} from the abyss, this top bubble is removed. Pushing a
+bubble will not make the previous one disappear; rather, it will be
+stored \enquote{below} the top bubble until a pop command is
+executed. The stored bubble will then become the new top.
 
 Our \enquote{Hello world} program contains both a \emph{push} and a
 \emph{pop} command, repeated multiple times in order to generate the
 desired effect: the first few lines will push each letter of the
-\verb|Hello, world!| sentence on the stack, then each value is printed
-and automatically popped off.
+\verb|Hello, world!| sentence inside the abyss, then each value is
+printed and automatically popped off.
 
 It is important to highlighting that each character is inserted in
 reversed order: the print command operates on the last inserted value,
@@ -145,14 +145,14 @@ We have a working program and we know why it is written the way it is,
 but we have yet to understand how it is able to understand each
 statement.
 
-As already stated, each statement is written through a series of
+As already explained, each statement is written through a series of
 \emph{awa} or \emph{wa} syllables, joined to form words; each word is
 categorized as part of one of two groups: it can either be a
 \emph{command} or a \emph{parameter}.
 
 Commands are the instructions given to the machine. Our \enquote{Hello
-  world} example featured two commands: one to push a value on the
-stack, one to print the top value and remove it from the stack.
+  world} example featured two commands: one to push a value inside the
+abyss, one to print the top value and pop it.
 
 Parameters are values which commands operate on. Commands can take at
 most one parameter, but not all commands accept a parameter; in our
@@ -180,7 +180,7 @@ Commands are 5-bit values, which means five digits are examined, from
 left to right, to understand which command needs to be executed by the
 machine. In our example, the command is \verb|00101|; converting it to
 a decimal number---the system we normally use when counting---gives us
-the number 5, which correspond to pushing the parameter on the stack.
+the number 5, which correspond to pushing the parameter in the abyss.
 
 If a parameter is required by the command, eight more bits are
 examined to understand the value of said parameter. In our example,
