@@ -139,4 +139,68 @@ it. \\
 (remember, \emph{awa} must be the very first word) and see the
 result. Try adding more \emph{pop} command than \emph{push} ones and
 try to answer why it doesn't work.
+
+\section{Bits of information}
+We have a working program and we know why it is written the way it is,
+but we have yet to understand how it is able to understand each
+statement.
+
+As already stated, each statement is written through a series of
+\emph{awa} or \emph{wa} syllables, joined to form words; each word is
+categorized as part of one of two groups: it can either be a
+\emph{command} or a \emph{parameter}.
+
+Commands are the instructions given to the machine. Our \enquote{Hello
+  world} example featured two commands: one to push a value on the
+stack, one to print the top value and remove it from the stack.
+
+Parameters are values which commands operate on. Commands can take at
+most one parameter, but not all commands accept a parameter; in our
+example, the command to print the top value does not have one.
+
+To understand how to recognize a command from a parameter, let's
+return to the line we examined previously:
+\begin{verbatim}
+awa awawa awawa awa awawawa awawawawa
+\end{verbatim}
+
+We then substitute each \emph{awa} with a 0 (zero) and each \emph{wa}
+with a 1 (one):
+\begin{verbatim}
+0010100110111
+\end{verbatim}
+
+This substitution gives us a representation of a \emph{binary number},
+that is, a number composed only of the digits zero and one. When
+programming, each digit of a binary number is called \emph{bit} and
+the AWA5 language recognizes commands and parameters by examining
+which bits are zero and which are one.
+
+Commands are 5-bit values, which means five digits are examined, from
+left to right, to understand which command needs to be executed by the
+machine. In our example, the command is \verb|00101|; converting it to
+a decimal number---the system we normally use when counting---gives us
+the number 5, which correspond to pushing the parameter on the stack.
+
+If a parameter is required by the command, eight more bits are
+examined to understand the value of said parameter. In our example,
+the parameter is \verb|00110111| corresponding to the number 55.
+
+Converting each line in our \enquote{Hello world} example to
+decimal numbers, we get the following:
+\verbatiminput{hello2.awa}
+
+Which number corresponds to which command, and whether or not it
+accepts a parameter, is shown in more details in
+Appendix~\ref{list-of-opcodes}.
+
+\textbf{Excercise 1-3}. Try giving a parameter to the print command or
+remove a parameter from a push command. You will get errors; why does
+it happen? \\
+\textbf{Excercise 1-4}. (This excercise is moderately advanced, if you
+have little programming expertise you might want to skip it and return
+back later.) Open the compiled program using an appropriate tool to
+view binary files. Can you recognize the commands you wrote to print
+\verb|Hello, world!|? Try to understand what the contents of the file
+represent.
 \end{document}
