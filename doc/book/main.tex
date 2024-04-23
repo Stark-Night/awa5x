@@ -13,13 +13,14 @@
 
 %% You should have received a copy of the GNU General Public License
 %% along with this program.  If not, see <https://www.gnu.org/licenses/>.
-\documentclass[12pt,a4paper,draft]{book}
+\documentclass[11pt,a4paper,draft]{book}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\usepackage{polyglossia}
-\usepackage[hidelinks]{hyperref}
 \usepackage[autostyle]{csquotes}
 \usepackage{verbatim}
+\usepackage{parskip}
+\usepackage{polyglossia}
+\usepackage[colorlinks,hyperindex]{hyperref}
 \setdefaultlanguage{english}
 
 \author{The Starcnight Initiatibe}
@@ -67,4 +68,75 @@ shown later are installed and available on the reader's machine.
 
 In AWA5, the program to print \verb|Hello, world!| is:
 \verbatiminput{hello1.awa}
+
+That's an overwhelming listing of seemingly nonsensical words. For
+now, let's try to get this program running: as a specific example
+using the \emph{awa5x} suite of tools, create a file named
+\verb|hello.awa|, then compile it as follows:
+\begin{verbatim}
+awa5c hello.awa > hello.wa
+\end{verbatim}
+
+If all went well, the compilation process will silently generate a
+file called \verb|hello.wa|. This file is our \enquote{Hello world}
+program and it can be run as follows:
+\begin{verbatim}
+awa5 hello.wa
+\end{verbatim}
+
+which will print:
+\begin{verbatim}
+Hello, world!
+\end{verbatim}
+
+Let's now examine the code. Every AWA5 program is written by composing
+together two syllables: \emph{awa} and \emph{wa}; the first syllable
+is to be written in isolation, following any amount of blanks, the
+second one must immediately follow a syllable with no blanks
+inbetween.
+
+To better understand this rule, let's examine the second line of the
+code listing:
+\begin{verbatim*}
+awa awawa awawa awa awawawa awawawawa
+\end{verbatim*}
+
+Each blank, indicated by the \verb*| | symbol,
+separate each \emph{awa} syllable from the others;
+the \emph{wa} syllable is instead connected to the
+previous \emph{awa} or \emph{wa} syllable.
+
+To be recognized as an AWA5 program, the code must begin with a single
+\emph{awa} syllable. In our \enquote{Hello world} program it is the
+very first line. A list of \emph{statements} follow this opening word,
+each specifying an operation to be performed by the
+machine. Statements are executed in order from top to bottom and the
+program will terminate once the last command is reached.
+
+Every AWA5 program operates on a hidden \emph{stack} of values:
+whenever something is \emph{pushed} on the stack it will be considered
+the \emph{top} value; when programs \emph{pop} from the stack, this
+top value is removed. Pushing a value on the stack will not make the
+previous value disappear; rather, it will be stored \enquote{below}
+the top value until a pop command is executed. The stored value will
+then become the new top value.
+
+Our \enquote{Hello world} program contains both a \emph{push} and a
+\emph{pop} command, repeated multiple times in order to generate the
+desired effect: the first few lines will push each letter of the
+\verb|Hello, world!| sentence on the stack, then each value is printed
+and automatically popped off.
+
+It is important to highlighting that each character is inserted in
+reversed order: the print command operates on the last inserted value,
+thus to write our greetings correctly the \verb|H| letter must be
+inserted last.
+
+\textbf{Excercise 1-1}. Run the \enquote{Hello world} program. Try to
+omit characters or lines and see what happens each time you compile
+it. \\
+\textbf{Excercise 1-2}. Change the order of each line after the first
+(remember, \emph{awa} must be the very first word) and see the
+result. Try adding more \emph{pop} command than \emph{push} ones and
+try to answer why it doesn't work.
 \end{document}
