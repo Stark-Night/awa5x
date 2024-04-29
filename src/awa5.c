@@ -62,6 +62,10 @@ main(int argc, char *argv[]) {
      }
 
      struct FileMap input_map = file_map_open(argv[1]);
+     if (FILE_MAP_OPEN != input_map.status) {
+          fprintf(stderr, "unable to open %s\n", argv[1]);
+          return 1;
+     }
 
      // read the file header.
      struct Header file_header = { 0 };
