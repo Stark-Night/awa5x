@@ -19,6 +19,9 @@
 \usepackage[autostyle]{csquotes}
 \usepackage{verbatim}
 \usepackage{parskip}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
 \usepackage{polyglossia}
 \usepackage[colorlinks,hyperindex]{hyperref}
 \setdefaultlanguage{english}
@@ -203,4 +206,135 @@ back later.) Open the compiled program using an appropriate tool to
 view binary files. Can you recognize the commands you wrote to print
 \verb|Hello, world!|? Try to understand what the contents of the file
 represent.
+
+\appendix
+\chapter{Reference Material}
+\section{Introduction}
+This appendix contains quick reference material, that is, lists and
+tables with essential information about certain topics.
+
+Except for important notes in specific cases, there will not be any
+detailed explanation; it is recommended to first read the preceding
+chapters in case something is not clear.
+
+\section{List of commands}
+\label{list-of-opcodes}
+\begin{longtable}{lll}
+  \toprule
+  Command & Awatism & Parameter \\
+  \midrule
+  \textbf{NOP} & \verb|awa awa awa awa awa| & None \\
+  \textbf{PRN} & \verb|awa awa awa awawa| & None \\
+  \textbf{PR1} & \verb|awa awa awawa awa| & None \\
+  \textbf{RED} & \verb|awa awa awawawa| & None \\
+  \textbf{R3D} & \verb|awa awawa awa awa| & None \\
+  \textbf{BLO} & \verb|awa awawa awawa| & Number \\
+  \textbf{SBM} & \verb|awa awawawa awa| & Number \\
+  \textbf{POP} & \verb|awa awawawawa| & None \\
+  \textbf{DPL} & \verb|awawa awa awa awa| & None \\
+  \textbf{SRN} & \verb|awawa awa awawa| & Number \\
+  \textbf{MRG} & \verb|awawa awawa awa| & None \\
+  \textbf{4DD} & \verb|awawa awawawa| & None \\
+  \textbf{SUB} & \verb|awawawa awa awa| & None \\
+  \textbf{MUL} & \verb|awawawa awawa| & None \\
+  \textbf{DIV} & \verb|awawawawa awa| & None \\
+  \textbf{CNT} & \verb|awawawawawa| & None \\
+  \textbf{LBL} & \verb|~wa awa awa awa awa| & Number \\
+  \textbf{JMP} & \verb|~wa awa awa awawa| & Numeric label \\
+  \textbf{EQL} & \verb|~wa awa awawa awa| & None \\
+  \textbf{LSS} & \verb|~wa awa awawawa| & None \\
+  \textbf{GR8} & \verb|~wa awawa awa awa| & None \\
+  \textbf{EQZ} & \verb|~wa awawa awawa| & None \\
+  \textbf{TLB} & \verb|~wa awawawa awa| & AWASCII \\
+  \textbf{JTL} & \verb|~wa awawawawa| & AWASCII label \\
+  \textbf{CLL} & \verb|~wawa awa awa awa| & AWASCII label \\
+  \textbf{RET} & \verb|~wawa awa awawa| & None \\
+  \textbf{TRM} & \verb|~wawawawawa| & None \\
+  \bottomrule
+\end{longtable}
+
+\begin{description}
+\item[NOP] Does nothing and produces no effects.
+\item[PRN] Print the top bubble as AWASCII and remove it from the abyss.
+\item[PR1] Print the top bubble as a number and remove it from the abyss.
+\item[RED] Request a line of AWASCII text from the user. The line will
+  be stored as a double bubble comprising each character as a simple
+  bubble.
+\item[R3D] Request a number from the user and push it as a single
+  bubble inside the abyss.
+\item[BLO] Push the parameter inside the abyss.
+\item[SMB] Push the top bubble down by a number of positions indicated
+  by the parameter. A parameter of zero will push the bubble to the
+  very bottom of the abyss.
+\item[POP] Pop the top bubble off the abyss. If the bubble is double,
+  each contained bubble will be pushed inside the abyss in the same
+  order.
+\item[DPL] Duplicate the top bubble and push it inside the
+  abyss. Double bubbles will have their contents duplicated too.
+\item[SRN] Create a double bubble containing the number of bubbles
+  indicated by the parameter. These bubbles are moved inside the
+  double bubble and not duplicated.
+\item[MRG] Merge the first two bubbles into a double bubble. When at
+  least one bubble is double, the contents are merged into a single
+  double bubble.
+\item[4DD] Sum the contents of the first two bubbles, pop them off the
+  abyss and push a new bubble with the result inside the abyss. If one
+  is a double bubble and the other a simple bubble, sum the value of
+  the simple bubble to each item inside the double bubble; if both are
+  double bubbles, sum each item until the smallest bubble runs out.
+\item[SUB] Subtract the contents of the first two bubbles, pop them
+  off the abyss and push a new bubble with the result inside the
+  abyss. If one is a double bubble and the other a simple bubble,
+  subtract the value of the simple bubble to each item inside the
+  double bubble; if both are double bubbles, subtract each item until
+  the smallest bubble runs out. The second bubble is subtracted from
+  the top bubble.
+\item[MUL] Multiply the contents of the first two bubbles, pop them
+  off the abyss and push a new bubble with the result inside the
+  abyss. If one is a double bubble and the other a simple bubble,
+  multiply the value of the simple bubble to each item inside the
+  double bubble; if both are double bubbles, multiply each item until
+  the smallest bubble runs out.
+\item[DIV] Divide the contents of the first two bubbles, pop them off
+  the abyss and push a new bubble with the result inside the abyss. If
+  one is a double bubble and the other a simple bubble, divide the
+  value of the simple bubble to each item inside the double bubble; if
+  both are double bubbles, divide each item until the smallest bubble
+  runs out. The result is a double bubble whose first bubble is the
+  quotient and the second bubble is the remainder.
+\item[CNT] Push a new bubble inside the abyss with the size, in number
+  of items, of the top bubble. A simple bubble has a size of zero.
+\item[LBL] Register the current address at the given parameter.
+\item[JMP] Move the internal instruction pointer to the address
+  registered under the given parameter. Command execution will then
+  resume at said address.
+\item[EQL] Compare the first two bubbles: if the they have equal
+  contents the next command is executed, otherwise it will be
+  skipped. Single bubbles are compared directly, double bubbles will
+  have each item compared.
+\item[LSS] Compare the first two bubbles: if the top bubble is less
+  than the bubble below the next command is executed, otherwise it
+  will be skipped. Single bubbles are compared directly, double
+  bubbles will have each item compared.
+\item[GR8] Compare the first two bubbles: if the top bubble is greater
+  than the bubble below the next command is executed, otherwise it
+  will be skipped. Single bubbles are compared directly, double
+  bubbles will have each item compared.
+\item[EQZ] Skip the next command if the top bubble is either a double
+  bubble or its value is not zero.
+\item[TLB] Register the current address at the given parameter.
+\item[JTL] Move the internal instruction pointer to the address
+  registered under the given parameter. Command execution will then
+  resume at said address.
+\item[CLL] Save the current address and move the internal instruction
+  pointer to the address registered under the given parameter. Command
+  execution will then resume at said address. Each saved address will
+  exist until the program resumes execution from one of them with the
+  appropriate command.
+\item[RET] Move the internal instruction pointer to the last saved
+  address. Command execution will then resume at said address. The
+  saved address is forgotten after execution is resumed.
+\item[TRM] Terminate program execution, irrespective of any command
+  that follows.
+\end{description}
 \end{document}
