@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-bin_PROGRAMS = awa5 awa5c awa5p
+bin_PROGRAMS = awa5 awa5c awa5p awa5d
 check_PROGRAMS = test_utf8 test_opcodes test_abyss \
 	test_hash test_grow test_gap
 noinst_LIBRARIES = libutf8.a libopcodes.a libabyss.a libeval.a \
@@ -25,20 +25,25 @@ EXTRA_DIST = utf8.h opcodes.h abyss.h eval.h filemap.h hash.h grow.h gap.h
 awa5_SOURCES = awa5.c
 awa5_LDADD = libfilemap.a libopcodes.a libabyss.a libeval.a
 
-if !HAVE_GETLINE
-awa5_LDADD += ../vendors/libglgetline.a
-endif
-
 awa5c_SOURCES = awa5c.c
 awa5c_LDADD = libfilemap.a libutf8.a libgrow.a libhash.a libgap.a libopcodes.a
 
 awa5p_SOURCES = awa5p.c
 awa5p_LDADD = libfilemap.a libutf8.a libgrow.a libopcodes.a
 
+awa5d_SOURCES = awa5d.c
+awa5d_LDADD = libfilemap.a libopcodes.a libabyss.a libeval.a
+
+if !HAVE_GETLINE
+awa5_LDADD += ../vendors/libglgetline.a
+awa5d_LDADD += ../vendors/libglgetline.a
+endif
+
 if HAVE_WAPI
 awa5_LDADD += -lws2_32
 awa5c_LDADD += -lws2_32
 awa5p_LDADD += -lws2_32
+awa5d_LDADD += -lws2_32
 endif
 
 libutf8_a_SOURCES = utf8.c
