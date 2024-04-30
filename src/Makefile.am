@@ -32,7 +32,7 @@ awa5p_SOURCES = awa5p.c
 awa5p_LDADD = libfilemap.a libutf8.a libgrow.a libopcodes.a
 
 awa5d_SOURCES = awa5d.c
-awa5d_LDADD = libfilemap.a libopcodes.a libabyss.a libeval.a
+awa5d_LDADD = libfilemap.a libopcodes.a libabyss.a libeval.a libgrow.a
 
 if !HAVE_GETLINE
 awa5_LDADD += ../vendors/libglgetline.a

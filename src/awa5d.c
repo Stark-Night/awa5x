@@ -32,6 +32,7 @@
 #include "opcodes.h"
 #include "abyss.h"
 #include "eval.h"
+#include "grow.h"
 
 struct FileMeta {
      struct FileMap file;
@@ -62,10 +63,11 @@ static volatile int received_abort = 0;
 static jmp_buf jump_buffer = { 0 };
 
 // commands understood by the debugger
-#define QUIT_COMMAND 0
-#define RUN_COMMAND 1
-#define STEP_COMMAND 2
-#define BACKSTEP_COMMAND 3
+#define QUIT_COMMAND 0x20
+#define RUN_COMMAND 0x21
+#define STEP_COMMAND 0x22
+#define BACKSTEP_COMMAND 0x23
+#define FENCE_COMMAND 0x24
 
 static struct FileMeta
 input_file_open(struct FileMeta state, const char *path) {
@@ -163,6 +165,7 @@ main(int argc, char *argv[]) {
 
      int keep_watching = 1;
      int keep_executing = 0;
+     struct GrowBuffer fences = { 0 };
 
      if (0 != register_abort_handler()) {
           keep_watching = 0;
@@ -170,7 +173,11 @@ main(int argc, char *argv[]) {
 
      while (0 != keep_watching) {
           if (0 == keep_executing) {
-               int command = fgetc(stdin);
+               int8_t command = EOF;
+               uint32_t uparam = 0;
+               int32_t sparam = 0;
+
+               fread(&command, 1, 1, stdin);
 
                switch (command) {
                case EOF:
@@ -183,8 +190,21 @@ main(int argc, char *argv[]) {
                     keep_executing = 1;
                     break;
                case STEP_COMMAND:
+                    program.opcode = ((uint8_t)program.code[program.counter]) % 32;
+                    program.counter = program.counter + 1;
+                    if (0 != opcode_has_parameter(program.opcode)) {
+                         program.counter = program.counter +
+                              opcode_parameter_size(program.opcode);
+                    }
                     break;
                case BACKSTEP_COMMAND:
+                    // nice to have, but a bit subtle to implement;
+                    // "todo" for the moment
+                    break;
+               case FENCE_COMMAND:
+                    fread(&uparam, sizeof(uint32_t), 1, stdin);
+                    uparam = ntohl(uparam);
+                    fences = append_buffer(fences, &uparam, sizeof(uint32_t));
                     break;
                default:
                     break;
@@ -238,6 +258,21 @@ main(int argc, char *argv[]) {
 
                          program.extended_parameter = ntohl(sw);
                     }
+               }
+
+               int at_fence = 0;
+               for (size_t i=0; i<fences.size && 0==at_fence; i=i+sizeof(uint32_t)) {
+                    uint32_t address = ((uint32_t *)(fences.bytes + i))[0];
+
+                    if (program.counter == address) {
+                         at_fence = 1;
+                         fprintf(stderr, "Stop at 0x%x\n", address);
+                    }
+               }
+
+               if (0 != at_fence) {
+                    keep_executing = 0;
+                    continue;
                }
 
                switch (program.opcode) {
@@ -437,6 +472,7 @@ main(int argc, char *argv[]) {
           }
      }
 
+     fences = shrink_buffer(fences);
      program.abyss = abyss_drop(program.abyss);
      file_map_close(&(input_file.file));
 
