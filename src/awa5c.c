@@ -344,7 +344,7 @@ main(int argc, char *argv[]) {
      // find the next power of two to align the code segment to.
      // allows for some planned features to be hacked as a data
      // segment after the code.
-     uint64_t finalsize = cbuffers.outcursor;
+     uint64_t finalsize = (0 == cbuffers.outcursor) ? 1 : cbuffers.outcursor;
      finalsize = finalsize - 1;
      finalsize = finalsize | finalsize >> 1;
      finalsize = finalsize | finalsize >> 2;
