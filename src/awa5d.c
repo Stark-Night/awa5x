@@ -61,6 +61,12 @@ static size_t address_stack_top  = 0;
 static volatile int received_abort = 0;
 static jmp_buf jump_buffer = { 0 };
 
+// commands understood by the debugger
+#define QUIT_COMMAND 0
+#define RUN_COMMAND 1
+#define STEP_COMMAND 2
+#define BACKSTEP_COMMAND 3
+
 static struct FileMeta
 input_file_open(struct FileMeta state, const char *path) {
      if (FILE_MAP_OPEN == state.file.status) {
@@ -165,9 +171,23 @@ main(int argc, char *argv[]) {
      while (0 != keep_watching) {
           if (0 == keep_executing) {
                int command = fgetc(stdin);
-               if (EOF == command || 0 == command) {
+
+               switch (command) {
+               case EOF:
                     keep_watching = 0;
-                    continue;
+                    break;
+               case QUIT_COMMAND:
+                    keep_watching = 0;
+                    break;
+               case RUN_COMMAND:
+                    keep_executing = 1;
+                    break;
+               case STEP_COMMAND:
+                    break;
+               case BACKSTEP_COMMAND:
+                    break;
+               default:
+                    break;
                }
           }
 
