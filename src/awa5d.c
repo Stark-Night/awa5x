@@ -26,6 +26,7 @@
 #include <arpa/inet.h>
 #endif
 #include <signal.h>
+#include <setjmp.h>
 
 #include "filemap.h"
 #include "opcodes.h"
@@ -56,7 +57,9 @@ struct Program {
 static uint32_t address_stack[ADDRESS_STACK_SIZE] = { 0 };
 static size_t address_stack_top  = 0;
 
+// opcode evaluation can send SIGABRT
 static volatile int received_abort = 0;
+static jmp_buf jump_buffer = { 0 };
 
 static struct FileMeta
 input_file_open(struct FileMeta state, const char *path) {
@@ -104,12 +107,16 @@ abort_handler(int sig, int _) {
      received_abort = 1;
      signal(SIGABRT, &abort_handler);
 
+     longjmp(jump_buffer, 1);
+
      return 0;
 }
 #else
 static void
 abort_handler(int sig) {
      received_abort = 1;
+
+     longjmp(jump_buffer, 1);
 }
 #endif
 
@@ -120,8 +127,12 @@ register_abort_handler(void) {
 #else
      struct sigaction action = { 0 };
      action.sa_handler = &abort_handler;
+     sigemptyset(&(action.sa_mask));
 
-     sigaction(SIGABRT, &action, NULL);
+     if (-1 == sigaction(SIGABRT, &action, NULL)) {
+          fprintf(stderr, "sigaction failed\n");
+          return 1;
+     }
 #endif
 
      return 0;
@@ -144,10 +155,12 @@ main(int argc, char *argv[]) {
      struct Program program = { 0 };
      program.code = input_file.file.buffer + input_file.cursor;
 
-     register_abort_handler();
-
      int keep_watching = 1;
      int keep_executing = 0;
+
+     if (0 != register_abort_handler()) {
+          keep_watching = 0;
+     }
 
      while (0 != keep_watching) {
           if (0 == keep_executing) {
@@ -156,6 +169,20 @@ main(int argc, char *argv[]) {
                     keep_watching = 0;
                     continue;
                }
+          }
+
+          int jumppoint = setjmp(jump_buffer);
+          if (0 != jumppoint && 0 != received_abort) {
+               received_abort = 0;
+
+               fprintf(stderr,
+                       "Signal at 0x%x\nop: 0x%x\npar: 0x%x\nepar: 0x%x\n",
+                       program.counter,
+                       program.opcode,
+                       program.parameter,
+                       program.extended_parameter);
+
+               keep_executing = 0;
           }
 
           while (program.counter < input_file.code_size && 0 != keep_executing) {
@@ -381,22 +408,12 @@ main(int argc, char *argv[]) {
                     abort();
                }
 
-               if (0 != received_abort) {
-                    received_abort = 0;
-
-                    fprintf(stderr,
-                            "Signal at 0x%x\nop: 0x%x\npar: 0x%x\nepar: 0x%x\n",
-                            program.counter,
-                            program.opcode,
-                            program.parameter,
-                            program.extended_parameter);
-
-                    keep_executing = 0;
-
-                    continue;
-               }
-
                program.counter = program.counter + 1;
+          }
+
+          keep_executing = 0;
+          if (program.counter >= input_file.code_size) {
+               program.counter = 0;
           }
      }
 
