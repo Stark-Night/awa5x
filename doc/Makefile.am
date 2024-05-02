@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-dist_man1_MANS = awa5.1 awa5c.1
+dist_man1_MANS = awa5.1 awa5c.1 awa5p.1 awa5d.1
 
 install-html-local:
 	$(MKDIR_P) $(DESTDIR)$(htmldir)
