@@ -630,8 +630,8 @@ apply_div_op(struct Abyss abyss, struct Bubble *b1, struct Bubble *b2) {
           reminder->value = qr.rem;
           quotient->value = qr.quot;
 
-          reminder->next = quotient;
-          head->head = reminder;
+          quotient->next = reminder;
+          head->head = quotient;
 
           page.bubble = head;
           return page;
