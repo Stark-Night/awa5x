@@ -94,6 +94,13 @@ main(int argc, char *argv[]) {
           return 1;
      }
 
+     // verify the program size makes sense
+     if (file_header.code_size > input_map.size - file_header.cursor) {
+          fprintf(stderr, "malformed file\n");
+          file_map_close(&input_map);
+          return 1;
+     }
+
      struct Program program = { 0 };
      program.code = input_map.buffer + file_header.cursor;
 

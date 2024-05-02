@@ -110,6 +110,13 @@ input_file_open(struct FileMeta state, const char *path) {
           return state;
      }
 
+     // verify the program size makes sense
+     if (state.code_size > state.file.size - state.cursor) {
+          fprintf(stderr, "malformed file\n");
+          file_map_close(&(state.file));
+          return state;
+     }
+
      return state;
 }
 
