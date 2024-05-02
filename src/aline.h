@@ -20,6 +20,7 @@
 #include <stdint.h>
 
 #define ALINE_FLAG_BREAK 0x1
+#define ALINE_FLAG_RESUME 0x2
 
 struct ALineItem {
      int8_t code;
@@ -48,5 +49,11 @@ aline_reset(struct ALine aline);
 
 struct ALine
 aline_change_flags_at(struct ALine aline, size_t index, uint16_t flags);
+
+struct ALine
+aline_add_flags_at(struct ALine aline, size_t index, uint16_t flags);
+
+struct ALine
+aline_remove_flags_at(struct ALine aline, size_t index, uint16_t flags);
 
 #endif

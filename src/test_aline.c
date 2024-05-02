@@ -49,6 +49,14 @@ main(int argc, char *argv[]) {
      aline = aline_change_flags_at(aline, 1, 5);
      abort_when(5 != aline.items[1].flags);
 
+     aline = aline_change_flags_at(aline, 1, 0);
+     aline = aline_add_flags_at(aline, 1, 1);
+     abort_when(1 != aline.items[1].flags);
+     aline = aline_add_flags_at(aline, 1, 2);
+     abort_when(3 != aline.items[1].flags);
+     aline = aline_remove_flags_at(aline, 1, 1);
+     abort_when(2 != aline.items[1].flags);
+
      aline = aline_end(aline);
 
      return 0;

@@ -95,3 +95,29 @@ aline_change_flags_at(struct ALine aline, size_t index, uint16_t flags) {
 
      return aline;
 }
+
+struct ALine
+aline_add_flags_at(struct ALine aline, size_t index, uint16_t flags) {
+     if (index >= aline.capacity) {
+          // this is a programming bug; an assert would've been
+          // better, probably, but I prefer being more drastic
+          abort();
+     }
+
+     aline.items[index].flags = aline.items[index].flags | flags;
+
+     return aline;
+}
+
+struct ALine
+aline_remove_flags_at(struct ALine aline, size_t index, uint16_t flags) {
+     if (index >= aline.capacity) {
+          // this is a programming bug; an assert would've been
+          // better, probably, but I prefer being more drastic
+          abort();
+     }
+
+     aline.items[index].flags = aline.items[index].flags & ~flags;
+
+     return aline;
+}

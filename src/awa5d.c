@@ -68,6 +68,8 @@ static jmp_buf jump_buffer = { 0 };
 #define STEP_COMMAND 0x22
 #define BACKSTEP_COMMAND 0x23
 #define FENCE_COMMAND 0x24
+#define RESUME_COMMAND 0x25
+#define REWIND_COMMAND 0x26
 
 static struct FileMeta
 input_file_open(struct FileMeta state, const char *path) {
@@ -262,9 +264,18 @@ main(int argc, char *argv[]) {
                case FENCE_COMMAND:
                     fread(&uparam, sizeof(uint32_t), 1, stdin);
                     uparam = ntohl(uparam);
-                    file_contents = aline_change_flags_at(file_contents,
-                                                          uparam,
-                                                          ALINE_FLAG_BREAK);
+                    file_contents = aline_add_flags_at(file_contents,
+                                                       uparam,
+                                                       ALINE_FLAG_BREAK);
+                    break;
+               case RESUME_COMMAND:
+                    file_contents = aline_add_flags_at(file_contents,
+                                                       program.counter,
+                                                       ALINE_FLAG_RESUME);
+                    keep_executing = 1;
+                    break;
+               case REWIND_COMMAND:
+                    program.counter = 0;
                     break;
                default:
                     break;
@@ -302,10 +313,16 @@ main(int argc, char *argv[]) {
                     }
                }
 
-               if (0 != ALINE_FLAG_BREAK & aline.flags) {
-                    fprintf(stderr, "Stop at 0x%x\n", aline.address);
-                    keep_executing = 0;
-                    continue;
+               if (0 != (ALINE_FLAG_BREAK & aline.flags)) {
+                    if (0 == (ALINE_FLAG_RESUME & aline.flags)) {
+                         fprintf(stderr, "Stop at 0x%x\n", aline.address);
+                         keep_executing = 0;
+                         continue;
+                    }
+
+                    file_contents = aline_remove_flags_at(file_contents,
+                                                          program.counter,
+                                                          ALINE_FLAG_RESUME);
                }
 
                switch (program.opcode) {
