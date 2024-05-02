@@ -70,6 +70,7 @@ static jmp_buf jump_buffer = { 0 };
 #define FENCE_COMMAND 0x24
 #define RESUME_COMMAND 0x25
 #define REWIND_COMMAND 0x26
+#define GAZE_COMMAND 0x27
 
 static struct FileMeta
 input_file_open(struct FileMeta state, const char *path) {
@@ -276,6 +277,9 @@ main(int argc, char *argv[]) {
                     break;
                case REWIND_COMMAND:
                     program.counter = 0;
+                    break;
+               case GAZE_COMMAND:
+                    abyss_visualize(program.abyss, stderr);
                     break;
                default:
                     break;

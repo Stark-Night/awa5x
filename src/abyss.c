@@ -730,6 +730,35 @@ abyss_div(struct Abyss abyss) {
      return page.state;
 }
 
+static int
+bubble_visualize(struct Bubble *bubble, FILE *stream) {
+     if (0 == bubble_double(*bubble)) {
+          return fprintf(stream, "[0x%x]\n", bubble->value);
+     }
+
+     int res = 0;
+     res = res + fprintf(stream, "[\n");
+     for (struct Bubble *b=bubble->head; NULL!=b; b=b->next) {
+          res = res + bubble_visualize(b, stream);
+     }
+     res = res + fprintf(stream, "]\n");
+
+     return res;
+}
+
+struct Abyss
+abyss_visualize(struct Abyss abyss, FILE *stream) {
+     fprintf(stream, "{\n");
+
+     for (struct Bubble *b=abyss.head; NULL!=b; b=b->next) {
+          bubble_visualize(b, stream);
+     }
+
+     fprintf(stream, "}\n");
+
+     return abyss;
+}
+
 struct Bubble
 bubble_wrap(int32_t value) {
      struct Bubble bubble = { 0 };
