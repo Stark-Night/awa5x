@@ -26,6 +26,10 @@
       input, button, textarea, select {
           font: inherit;
       }
+
+      table {
+          border-collapse: collapse;
+      }
       /* end uniform */
 
       /* colors */
@@ -47,6 +51,10 @@
           background-color: #F8F8F8;
       }
 
+      thead {
+          border-color: #000000;
+      }
+
       @media (prefers-color-scheme: dark) {
           body {
               background-color: #151515;
@@ -65,6 +73,10 @@
               border-color: #949494;
               background-color: #252525;
               color: #B0B0B0;
+          }
+
+          thead {
+              border-color: #949494;
           }
       }
       /* end colors */
@@ -120,6 +132,19 @@
           margin-top: 0.5em;
       }
 
+      table {
+          margin-bottom: 1em;
+      }
+
+      thead {
+          border-bottom-width: 2px;
+          border-bottom-style: solid;
+      }
+
+      th + th, td + td {
+          padding-left: 1em;
+      }
+
       #gnu-free-documentation-license h2 {
           font-size: 1em;
       }
@@ -129,12 +154,12 @@
   <body>
     <main>
       <section aria-labelledby="front-matter">
-        <h1 id="front-matter">awa5x User Manual</h1>
+        <h1 id="front-matter">@PACKAGE_NAME@ User Manual</h1>
 
-        <p>awa5x is a set of tools implementing the AWA5.0 language
+        <p>@PACKAGE_NAME@ is a set of tools implementing the AWA5.0 language
           and extending it with a few more features.</p>
-        <p>This manual is for awa5x version @PACKAGE_VERSION@.</p>
-        <p>Copyright &copy; 2024 Stark Night &lt;<a href="mailto:starknightawawa@gmail.com">starknightawawa@gmail.com</a>&gt;</p>
+        <p>This manual is for @PACKAGE_NAME@ version @PACKAGE_VERSION@.</p>
+        <p>Copyright &copy; 2024 Stark Night &lt;<a href="mailto:@PACKAGE_BUGREPORT@">@PACKAGE_BUGREPORT@</a>&gt;</p>
         <blockquote>
           Permission is granted to copy, distribute and/or modify this document
           under the terms of the GNU Free Documentation License, Version 1.3
@@ -162,6 +187,7 @@
             <li><a href="#compiling">Compiling AWA5.0 programs</a></li>
             <li><a href="#executing">Executing compiled AWA5.0 programs</a></li>
             <li><a href="#preprocessor">The awa5p preprocessor</a></li>
+            <li><a href="#debugger">The awa5d debugger</a></li>
             <li><a href="#gnu-free-documentation-license">GNU Free Documentation License</a></li>
           </ol>
         </nav>
@@ -172,22 +198,22 @@
 
         <p><a href="https://github.com/TempTempai/AWA5.0">AWA5.0</a> is a programming language originally designed by <a href="https://www.youtube.com/@tempflavr">Temp-Tempai</a> as a fan project based on <a href="https://www.youtube.com/@JellyHoshiumi">Jelly Hoshiumi</a>'s content.</p>
 
-        <p>The language features an execution model based on a single data storage (a stack of &quot;bubbles&quot;) and its syntax is very close to assembly code. This manual will not explain the language but only the tools of the awa5x suite.</p>
+        <p>The language features an execution model based on a single data storage (a stack of &quot;bubbles&quot;) and its syntax is very close to assembly code. This manual will not explain the language but only the tools of the @PACKAGE_NAME@ suite.</p>
 
-        <p>The awa5x tools expand on the original specifications by adding a number of convenience features, listed further in this manual.</p>
+        <p>The @PACKAGE_NAME@ tools expand on the original specifications by adding a number of convenience features, listed further in this manual.</p>
       </section>
 
       <section aria-labelledby="differences">
         <h1 id="differences">Differences with the original specifications</h1>
 
-        <p>The awa5x suite provide a number of differences from the original specifications to extend what the language is capable of. In particular, a number of new opcodes have been added.</p>
+        <p>The @PACKAGE_NAME@ suite provide a number of differences from the original specifications to extend what the language is capable of. In particular, a number of new opcodes have been added.</p>
 
         <p>The content of this section will change as this implementation and the original specifications diverge over time.</p>
 
         <section aria-labelledby="differences-list">
           <h2 id="differences-list">List of new opcodes</h2>
 
-          <p>This section provides a simple list of all the new opcodes provided by awa5x. It is meant to be used as a quick reference; explanations about each opcode is provided later in this manual.</p>
+          <p>This section provides a simple list of all the new opcodes provided by @PACKAGE_NAME@. It is meant to be used as a quick reference; explanations about each opcode is provided later in this manual.</p>
 
           <p>The new opcodes are:</p>
 
@@ -203,7 +229,7 @@
         <section aria-labelledby="differences-parameters">
           <h2 id="differences-parameters">Extended parameters</h2>
 
-          <p>awa5x extends opcode parameters so that every opcode accepting a parameter requires an 8-bit value.</p>
+          <p>@PACKAGE_NAME@ extends opcode parameters so that every opcode accepting a parameter requires an 8-bit value.</p>
 
           <p>In the original specification, only the <code>BLO</code> opcode is able to handle an 8-bit value, mostly because of AWASCII; other opcodes like <code>LBL</code> could only use up to 5 bits and thus only up to 31 values.</p>
 
@@ -222,6 +248,8 @@
           <p>Other than a compiler and a virtual machine, the suite also provides a tool to process a file with more human-readable directives and generate AWA5 code automatically.</p>
 
           <p>The compiler recognize &quot;explicit comments&quot; in a file. Normally, words and symbols which are not <em>awa</em>, <em>wa</em> or <em>~wa</em> are ignored; however, some commong words like <em>away</em>, <em>awake</em> or <em>forwards</em> can confuse the compiler. To ensure code is compiled as expected, anything between the <code>;</code> character (UTF-8 point <code>0x3B</code>) and the end of the line (identified by the UTF-8 point <code>0x0A</code>) will be completely ignored.</p>
+
+          <p>Since 2.0.0, the suite provides a &quot;debugging daemon&quot;. See <a href="#debugger">The awa5d debugger</a> for more informations.</p>
         </section>
 
         <section aria-labelledby="differences-flow">
@@ -312,6 +340,78 @@ $ awa5c input.awa > output.awc</pre>
 
 input.awc: input.awa
     @awa5c $< > $@</pre>
+      </section>
+
+      <section aria-labelledby="debugger">
+        <h1 id="debugger">The awa5d debugger</h1>
+
+        <p>The <em>awa5d</em> tool is a debugger allowing developers to step through a program's execution and examine its internal state.</p>
+
+        <p>Unlike traditional debuggers, this tool is designed to be a service: once started, the program will listen to its standard input stream for commands and will provide results on the standard <em>error</em> stream; the output stream is left to the language's printing operations.</p>
+
+        <p>This design allows developers to use any interface with minimal friction, as long as the program speaks the protocol understood by the service.</p>
+
+        <p>Each command is a single byte, listed below; some commands require an argument which is always four bytes long, in network byte order.</p>
+
+        <p>If multiple commands are issued in a single pass, the service will execute all of them in order, allowing scripted execution.</p>
+
+        <p>When referencing an operation the debugger keeps track of them as a single unit composed of its opcode and its parameter. As an example, adding a fence to stop execution at the third operation at address <code>0x02</code> means specifying an operation number of 3, adding a fence to the fifth operation will have number 5 and so on.</p>
+
+        <p>The currently recognized commands are the following:</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Command</th>
+              <th>Parameter</th>
+              <th>Effect</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>0x20</code></td>
+              <td>None</td>
+              <td>Shut down the debugger</td>
+            </tr>
+            <tr>
+              <td><code>0x21</code></td>
+              <td>None</td>
+              <td>Start normal program execution</td>
+            </tr>
+            <tr>
+              <td><code>0x22</code></td>
+              <td>None</td>
+              <td>Skip to the next opcode without execution</td>
+            </tr>
+            <tr>
+              <td><code>0x23</code></td>
+              <td>None</td>
+              <td>Skip to the previous opcode without execution</td>
+            </tr>
+            <tr>
+              <td><code>0x24</code></td>
+              <td>Operation number</td>
+              <td>Add a fence at the given parameter</td>
+            </tr>
+            <tr>
+              <td><code>0x25</code></td>
+              <td>None</td>
+              <td>Resume execution at the current operation</td>
+            </tr>
+            <tr>
+              <td><code>0x26</code></td>
+              <td>None</td>
+              <td>Restart program execution from the beginning without modifying the abyss</td>
+            </tr>
+            <tr>
+              <td><code>0x27</code></td>
+              <td>None</td>
+              <td>Visualize the abyss; see later in this section for details</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p>When the command to visualize the abyss is issued, each bubble will be displayed as its value in hexadecimal notation surrounded by square brackets (UTF-8 points <code>0x5B</code> and <code>0x5D</code>); double bubbles will be displayed as following: first a line containing a single open square bracket, followed by the display of each contained bubble, then finally a single line containing a single closed square bracket.</p>
       </section>
 
       <section aria-labelledby="gnu-free-documentation-license">
