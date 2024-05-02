@@ -16,3 +16,4 @@ test_abyss
 test_hash
 test_grow
 test_gap
+test_aline

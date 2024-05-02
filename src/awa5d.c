@@ -32,7 +32,7 @@
 #include "opcodes.h"
 #include "abyss.h"
 #include "eval.h"
-#include "grow.h"
+#include "aline.h"
 
 struct FileMeta {
      struct FileMap file;
@@ -146,6 +146,23 @@ register_abort_handler(void) {
      return 0;
 }
 
+static uint32_t
+find_aline_by_address(struct ALine aline, uint32_t address) {
+     // it's slow, can be done better with a more appropriate data
+     // structure, but it's a developer tool to catch bugs and I'd
+     // rather have simplicity over being too smart.
+     for (uint32_t i=0; i<aline.capacity; ++i) {
+          if (address != aline.items[i].address) {
+               continue;
+          }
+
+          return i;
+     }
+
+     // thrash the call because something doesn't add up
+     abort();
+}
+
 int
 main(int argc, char *argv[]) {
      if (argc < 2) {
@@ -165,7 +182,50 @@ main(int argc, char *argv[]) {
 
      int keep_watching = 1;
      int keep_executing = 0;
-     struct GrowBuffer fences = { 0 };
+     struct ALine file_contents = { 0 };
+
+     file_contents = aline_start(file_contents);
+     for (uint32_t i=0; i<input_file.code_size; ++i) {
+          struct ALineItem item = { 0 };
+
+          item.address = i;
+          item.code = ((uint8_t)program.code[i]) % 32;
+
+          if (0 != opcode_has_parameter(item.code)) {
+               int parasize = opcode_parameter_size(item.code);
+
+               i = i + 1;
+
+               if (i >= input_file.code_size) {
+                    fprintf(stderr,
+                            "%s: not enough arguments\n",
+                            opcode_name(item.code));
+                    continue;
+               }
+
+               if (1 == parasize) {
+                    item.parameter = program.code[i];
+               } else {
+                    item.parameter = 0;
+
+                    uint8_t bytes[4] = {
+                         program.code[i + 0],
+                         program.code[i + 1],
+                         program.code[i + 2],
+                         program.code[i + 3],
+                    };
+
+                    uint32_t sw = 0;
+                    memcpy(&sw, bytes, 4);
+
+                    item.parameter = ntohl(sw);
+
+                    i = i + 3;
+               }
+          }
+
+          file_contents = aline_track(file_contents, item);
+     }
 
      if (0 != register_abort_handler()) {
           keep_watching = 0;
@@ -190,21 +250,21 @@ main(int argc, char *argv[]) {
                     keep_executing = 1;
                     break;
                case STEP_COMMAND:
-                    program.opcode = ((uint8_t)program.code[program.counter]) % 32;
-                    program.counter = program.counter + 1;
-                    if (0 != opcode_has_parameter(program.opcode)) {
-                         program.counter = program.counter +
-                              opcode_parameter_size(program.opcode);
+                    if (program.counter < input_file.code_size) {
+                         program.counter = program.counter + 1;
                     }
                     break;
                case BACKSTEP_COMMAND:
-                    // nice to have, but a bit subtle to implement;
-                    // "todo" for the moment
+                    if (0 < program.counter) {
+                         program.counter = program.counter - 1;
+                    }
                     break;
                case FENCE_COMMAND:
                     fread(&uparam, sizeof(uint32_t), 1, stdin);
                     uparam = ntohl(uparam);
-                    fences = append_buffer(fences, &uparam, sizeof(uint32_t));
+                    file_contents = aline_change_flags_at(file_contents,
+                                                          uparam,
+                                                          ALINE_FLAG_BREAK);
                     break;
                default:
                     break;
@@ -225,52 +285,25 @@ main(int argc, char *argv[]) {
                keep_executing = 0;
           }
 
-          while (program.counter < input_file.code_size && 0 != keep_executing) {
-               program.opcode = ((uint8_t)program.code[program.counter]) % 32;
+          while (program.counter < file_contents.capacity && 0 != keep_executing) {
+               struct ALineItem aline = file_contents.items[program.counter];
+
+               program.opcode = aline.code;
 
                if (0 != opcode_has_parameter(program.opcode)) {
                     int parasize = opcode_parameter_size(program.opcode);
 
-                    program.counter = program.counter + 1;
-
-                    if (program.counter >= input_file.code_size) {
-                         fprintf(stderr,
-                                 "%s: not enough arguments\n",
-                                 opcode_name(program.opcode));
-                         continue;
-                    }
-
                     if (1 == parasize) {
-                         program.parameter = program.code[program.counter];
+                         program.parameter = aline.parameter;
                          program.extended_parameter = 0;
                     } else {
                          program.parameter = 0;
-
-                         uint8_t bytes[4] = {
-                              program.code[program.counter + 0],
-                              program.code[program.counter + 1],
-                              program.code[program.counter + 2],
-                              program.code[program.counter + 3],
-                         };
-
-                         uint32_t sw = 0;
-                         memcpy(&sw, bytes, 4);
-
-                         program.extended_parameter = ntohl(sw);
+                         program.extended_parameter = aline.parameter;
                     }
                }
 
-               int at_fence = 0;
-               for (size_t i=0; i<fences.size && 0==at_fence; i=i+sizeof(uint32_t)) {
-                    uint32_t address = ((uint32_t *)(fences.bytes + i))[0];
-
-                    if (program.counter == address) {
-                         at_fence = 1;
-                         fprintf(stderr, "Stop at 0x%x\n", address);
-                    }
-               }
-
-               if (0 != at_fence) {
+               if (0 != ALINE_FLAG_BREAK & aline.flags) {
+                    fprintf(stderr, "Stop at 0x%x\n", aline.address);
                     keep_executing = 0;
                     continue;
                }
@@ -332,9 +365,13 @@ main(int argc, char *argv[]) {
                     if (UINT32_MAX == program.extended_parameter) {
                          program.result.code = EVAL_ERROR;
                     } else {
+                         uint32_t where =
+                              find_aline_by_address(file_contents,
+                                                    program.extended_parameter);
+
                          // memo: subtract 1 because the counter is
                          // increased at the end of the loop
-                         program.counter = program.extended_parameter - 1;
+                         program.counter = where - 1;
                     }
                     break;
                case EQL:
@@ -342,12 +379,6 @@ main(int argc, char *argv[]) {
                     if (EVAL_NO == program.result.code) {
                          // skip the next instruction
                          program.counter = program.counter + 1;
-                         program.opcode = ((uint8_t)program.code[program.counter]) % 32;
-
-                         if (0 != opcode_has_parameter(program.opcode)) {
-                              int size = opcode_parameter_size(program.opcode);
-                              program.counter = program.counter + size;
-                         }
                     }
                     // reset the result to avoid exiting the program
                     program.result.code = EVAL_OK;
@@ -357,12 +388,6 @@ main(int argc, char *argv[]) {
                     if (EVAL_NO == program.result.code) {
                          // skip the next instruction
                          program.counter = program.counter + 1;
-                         program.opcode = ((uint8_t)program.code[program.counter]) % 32;
-
-                         if (0 != opcode_has_parameter(program.opcode)) {
-                              int size = opcode_parameter_size(program.opcode);
-                              program.counter = program.counter + size;
-                         }
                     }
                     // reset the result to avoid exiting the program
                     program.result.code = EVAL_OK;
@@ -372,12 +397,6 @@ main(int argc, char *argv[]) {
                     if (EVAL_NO == program.result.code) {
                          // skip the next instruction
                          program.counter = program.counter + 1;
-                         program.opcode = ((uint8_t)program.code[program.counter]) % 32;
-
-                         if (0 != opcode_has_parameter(program.opcode)) {
-                              int size = opcode_parameter_size(program.opcode);
-                              program.counter = program.counter + size;
-                         }
                     }
                     // reset the result to avoid exiting the program
                     program.result.code = EVAL_OK;
@@ -387,12 +406,6 @@ main(int argc, char *argv[]) {
                     if (EVAL_NO == program.result.code) {
                          // skip the next instruction
                          program.counter = program.counter + 1;
-                         program.opcode = ((uint8_t)program.code[program.counter]) % 32;
-
-                         if (0 != opcode_has_parameter(program.opcode)) {
-                              int size = opcode_parameter_size(program.opcode);
-                              program.counter = program.counter + size;
-                         }
                     }
                     // reset the result to avoid exiting the program
                     program.result.code = EVAL_OK;
@@ -405,9 +418,13 @@ main(int argc, char *argv[]) {
                     if (UINT32_MAX == program.extended_parameter) {
                          program.result.code = EVAL_ERROR;
                     } else {
+                         uint32_t where =
+                              find_aline_by_address(file_contents,
+                                                    program.extended_parameter);
+
                          // memo: subtract 1 because the counter is
                          // increased at the end of the loop
-                         program.counter = program.extended_parameter - 1;
+                         program.counter = where - 1;
                     }
                     break;
                case CLL:
@@ -418,16 +435,17 @@ main(int argc, char *argv[]) {
                          fprintf(stderr, "too much recursion\n");
                          abort();
                     } else {
-                         // add the size of the parameter too
-                         uint32_t address = program.counter +
-                              opcode_parameter_size(program.opcode);
+                         uint32_t address = program.counter + 1;
 
                          address_stack[address_stack_top] = address;
                          address_stack_top = address_stack_top + 1;
 
+                         uint32_t where =
+                              find_aline_by_address(file_contents,
+                                                    program.extended_parameter);
                          // memo: subtract 1 because the counter is
                          // increased at the end of the loop
-                         program.counter = program.extended_parameter - 1;
+                         program.counter = where - 1;
                     }
                     break;
                case RET:
@@ -445,7 +463,7 @@ main(int argc, char *argv[]) {
                     break;
                case TRM:
                     program.result.code = EVAL_OK;
-                    program.counter = input_file.code_size;
+                    program.counter = file_contents.capacity;
                     break;
                default:
                     opcode_error(program.opcode,
@@ -467,12 +485,13 @@ main(int argc, char *argv[]) {
           }
 
           keep_executing = 0;
-          if (program.counter >= input_file.code_size) {
+          if (program.counter >= file_contents.capacity) {
                program.counter = 0;
           }
      }
 
-     fences = shrink_buffer(fences);
+
+     file_contents = aline_end(file_contents);
      program.abyss = abyss_drop(program.abyss);
      file_map_close(&(input_file.file));
 
