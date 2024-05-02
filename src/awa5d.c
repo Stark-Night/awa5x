@@ -71,6 +71,7 @@ static jmp_buf jump_buffer = { 0 };
 #define RESUME_COMMAND 0x25
 #define REWIND_COMMAND 0x26
 #define GAZE_COMMAND 0x27
+#define DISMANTLE_COMMAND 0x28
 
 static struct FileMeta
 input_file_open(struct FileMeta state, const char *path) {
@@ -240,7 +241,10 @@ main(int argc, char *argv[]) {
                uint32_t uparam = 0;
                int32_t sparam = 0;
 
-               fread(&command, 1, 1, stdin);
+               if (0 == fread(&command, 1, 1, stdin)) {
+                    // trying to get rid of a spurious warning
+                    command = EOF;
+               }
 
                switch (command) {
                case EOF:
@@ -263,7 +267,10 @@ main(int argc, char *argv[]) {
                     }
                     break;
                case FENCE_COMMAND:
-                    fread(&uparam, sizeof(uint32_t), 1, stdin);
+                    if (0 == fread(&uparam, sizeof(uint32_t), 1, stdin)) {
+                         // not sure how to handle
+                         abort();
+                    }
                     uparam = ntohl(uparam);
                     file_contents = aline_add_flags_at(file_contents,
                                                        uparam,
@@ -280,6 +287,17 @@ main(int argc, char *argv[]) {
                     break;
                case GAZE_COMMAND:
                     abyss_visualize(program.abyss, stderr);
+                    break;
+               case DISMANTLE_COMMAND:
+                    if (0 == fread(&uparam, sizeof(uint32_t), 1, stdin)) {
+                         // not sure how to handle
+                         abort();
+                    }
+                    uparam = ntohl(uparam);
+                    file_contents =
+                         aline_remove_flags_at(file_contents,
+                                               uparam,
+                                               ALINE_FLAG_BREAK|ALINE_FLAG_RESUME);
                     break;
                default:
                     break;

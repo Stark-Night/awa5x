@@ -408,6 +408,11 @@ input.awc: input.awa
               <td>None</td>
               <td>Visualize the abyss; see later in this section for details</td>
             </tr>
+            <tr>
+              <td><code>0x28</code></td>
+              <td>Operation number</td>
+              <td>Remove the fence at the given parameter</td>
+            </tr>
           </tbody>
         </table>
 
