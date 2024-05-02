@@ -120,24 +120,16 @@ input_file_open(struct FileMeta state, const char *path) {
      return state;
 }
 
-#if defined(_WIN64) || defined(_WIN32) || defined (__MINGW32__) || defined(__MINGW64__)
-static int
-abort_handler(int sig, int _) {
-     received_abort = 1;
-     signal(SIGABRT, &abort_handler);
-
-     longjmp(jump_buffer, 1);
-
-     return 0;
-}
-#else
 static void
 abort_handler(int sig) {
      received_abort = 1;
 
+#if defined(_WIN64) || defined(_WIN32) || defined (__MINGW32__) || defined(__MINGW64__)
+     signal(SIGABRT, &abort_handler);
+#endif
+
      longjmp(jump_buffer, 1);
 }
-#endif
 
 static int
 register_abort_handler(void) {
