@@ -22,6 +22,7 @@
 #include "opcodes.h"
 #include "eval.h"
 #include "abyss.h"
+#include "strtoawa.h"
 
 #ifndef HAVE_GETLINE
 #include "getline.h"
@@ -168,10 +169,11 @@ eval_r3d(struct Abyss abyss, int8_t parameter) {
      }
      bytes = bytes - 1;
 
-     // strtol is not really the best method for a number of reasons,
-     // but it's good enough™ for us
+     // strtoawa is just strtol where negative numbers start with ~
+     // instead of the minus sign; strtol itself is not the best
+     // choice for a number of reasons, but it's good enough™.
      char *tail = NULL;
-     long int cnum = strtol(result.state.exbuffer, &tail, 10);
+     long int cnum = strtoawa(result.state.exbuffer, &tail);
 
      // again we loop until a valid input
      while (NULL != tail && '\0' != tail[0] && (INT32_MIN > cnum || INT32_MAX < cnum)) {
@@ -184,7 +186,7 @@ eval_r3d(struct Abyss abyss, int8_t parameter) {
           }
           bytes = bytes - 1;
 
-          cnum = strtol(result.state.exbuffer, &tail, 10);
+          cnum = strtoawa(result.state.exbuffer, &tail);
      }
 
      struct Bubble bubble = bubble_wrap((int32_t)cnum);

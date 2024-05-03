@@ -25,6 +25,7 @@
 #include "utf8.h"
 #include "grow.h"
 #include "opcodes.h"
+#include "strtoawa.h"
 
 struct CurrentFile {
      struct FileMap map;
@@ -268,9 +269,9 @@ parameter_line_check(struct GrowBuffer *line) {
           return 0;
      }
 
-     // like in eval.c, strtol is not the best but it does its job I guess
+     // like in eval.c, strtol/strtoawa is not the best but it does its job I guess
      char *tail = NULL;
-     long int cnum = strtol(line->bytes, &tail, 10);
+     long int cnum = strtoawa(line->bytes, &tail);
 
      if (NULL != tail && '\0' != tail[0] && (INT8_MIN > cnum || INT8_MAX < cnum)) {
           fprintf(stderr,
