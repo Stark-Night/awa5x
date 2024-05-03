@@ -37,14 +37,14 @@ AM_CONDITIONAL([HAVE_WAPI], [test "x$have_wapi" = "xyes"])
 AC_CHECK_FUNCS([getline], [getline_f=yes], [getline_f=no])
 AM_CONDITIONAL([HAVE_GETLINE], [test "x$getline_f" = "xyes"])
 
-AC_CHECK_PROGS([LATEX], [xelatex lualatex], [no])
-AM_CONDITIONAL([HAVE_LATEX], [test "x$have_latex" != "xno"])
-
 AC_ARG_ENABLE([debug],
   [AS_HELP_STRING([--enable-debug], [enable facilities to improve debugging])])
 
 AC_ARG_ENABLE([awa-tracing],
   [AS_HELP_STRING([--enable-awa-tracing], [trace opcodes execution])])
+
+AC_ARG_ENABLE([book],
+  [AS_HELP_STRING([--enable-book], [build the AWA5 book])])
 
 AS_IF([test "x$enable_debug" = "xyes"],
   [AC_DEFINE([DEBUG], [1], [Define to 1 if debug is enabled])
@@ -55,5 +55,11 @@ AS_IF([test "x$enable_debug" = "xyes"],
 
 AS_IF([test "x$enable_awa_tracing" = "xyes"],
   [AC_DEFINE([OPCODE_TRACING], [1], [Define to 1 if opcode tracing is enabled])])
+
+have_latex=no
+AS_IF([test "x$enable_book" = "xyes"],
+  [AC_CHECK_PROGS([LATEX], [xelatex lualatex], [no])
+   AS_IF([test "x$LATEX" != "xno"], [have_latex=yes])])
+AM_CONDITIONAL([HAVE_LATEX], [test "x$have_latex" != "xno"])
 
 AC_OUTPUT
