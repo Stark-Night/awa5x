@@ -1,3 +1,9 @@
+2024-05-03 Stark Night <starknightawawa@gmail.com>
+	* 2.0.1
+	Division result is now in the correct order.
+	Reading AWASCII does not reverse user input anymore.
+	Negative numbers are aligned to specifications.
+
 2024-05-02 Stark Night <starknightawawa@gmail.com>
 	* 2.0.0
 	Debugger tool.
