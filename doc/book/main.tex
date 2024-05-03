@@ -314,6 +314,41 @@ a command to move the top bubble before printing. Change the parameter
 and see what happens; what does a value of zero do? What if the
 parameter is too big?
 
+\section{Textual and Numeric Input}
+So far our programs have worked on values we have specified directly
+inside the code; however, programs often need to work on input
+provided by users.
+
+The AWA5 language recognizes two different kind of input and output:
+textual and numeric. In our first example, \enquote{Hello world}, we
+have seen textual ouput where the numbers pushed inside the abyss were
+printed as letters; in the Celsius to Fahrenheit converter the output
+was numeric, where the quotient was printed as a number.
+
+Textual input and output operate within the bounds of the AWASCII
+alphabet; any value not inside these bounds will be considered
+invalid. The complete table of AWASCII characters can be found in
+Appendix~\ref{list-of-awascii}.
+
+Numeric input accepts any number that can be represented with 32 bits,
+which means anything between \(-2^{31}\) and \(2^{31}-1\) or
+\num{-2147483648} and \num{2147483647} in decimal notation. This
+number must be written using valid AWASCII characters, thus negative
+values will be prefixed with the \verb|~| symbol: \(-2\) is written as
+\~{}2, for example.
+
+\subsection{Textual input}
+Let us extend our \enquote{Hello world} program to greet anyone the
+user wishes for. We will first print the \verb|!| character to inform
+the user we wish to obtain a line of AWASCII text, then we will
+suspend the program execution until the user provides some valid
+input.
+\verbatiminput{hello3.awa}
+% TBC with explanation
+
+\subsection{Numerical input}
+% TBC with Celsius example with user input
+
 \appendix
 \chapter{Reference Material}
 \section{Introduction}
