@@ -118,7 +118,8 @@ eval_red(struct Abyss abyss, int8_t parameter) {
      }
 
      // avoids the newline at the end
-     bytes = bytes - 1;
+     result.state.exbuffer[bytes-1] = '\0';
+     bytes = bytes-1;
 
      int valid = 0;
      while (0 == valid) {
@@ -153,7 +154,7 @@ eval_red(struct Abyss abyss, int8_t parameter) {
      }
 
      struct Bubble bubble = { 0 };
-     for (ssize_t i=0; i<bytes; ++i) {
+     for (ssize_t i=bytes-1; i>-1; --i) {
           bubble = bubble_wrap(result.state.exbuffer[i]);
           result.state = abyss_push(result.state, bubble);
      }
