@@ -317,8 +317,8 @@ parameter is too big?
 \appendix
 \chapter{Reference Material}
 \section{Introduction}
-This appendix contains quick reference material, that is, lists and
-tables with essential information about certain topics.
+This appendix contains quick reference material: lists and tables with
+essential information about certain topics.
 
 Except for important notes in specific cases, there will not be any
 detailed explanation; it is recommended to first read the preceding
@@ -329,7 +329,10 @@ chapters in case something is not clear.
 \begin{longtable}{lll}
   \toprule
   Command & Awatism & Parameter \\
-  \midrule
+  \midrule \endhead
+
+  \bottomrule \endfoot
+
   \textbf{NOP} & \verb|awa awa awa awa awa| & None \\
   \textbf{PRN} & \verb|awa awa awa awawa| & None \\
   \textbf{PR1} & \verb|awa awa awawa awa| & None \\
@@ -357,7 +360,6 @@ chapters in case something is not clear.
   \textbf{CLL} & \verb|~wawa awa awa awa| & AWASCII label \\
   \textbf{RET} & \verb|~wawa awa awawa| & None \\
   \textbf{TRM} & \verb|~wawawawawa| & None \\
-  \bottomrule
 \end{longtable}
 
 \begin{description}
@@ -459,7 +461,7 @@ chapters in case something is not clear.
   5 & 05 & E && 27 & 1B & T && 49 & 31 & 7 \\
   6 & 06 & L && 28 & 1C & p && 50 & 32 & 8 \\
   7 & 07 & Y && 29 & 1D & c && 51 & 33 & 9 \\
-  8 & 08 & H && 30 & 1E & n && 52 & 34 & Blank \\
+  8 & 08 & H && 30 & 1E & n && 52 & 34 & Blank\textsuperscript{\dag} \\
   9 & 09 & O && 31 & 1F & t && 53 & 35 & \verb|.| \\
   10 & 0A & S && 32 & 20 & B && 54 & 36 & \verb|,| \\
   11 & 0B & I && 33 & 21 & D && 55 & 37 & \verb|!| \\
@@ -470,16 +472,16 @@ chapters in case something is not clear.
   16 & 10 & l && 38 & 26 & d && 60 & 3C & \verb|_| \\
   17 & 11 & y && 39 & 27 & f && 61 & 3D & \verb|/| \\
   18 & 12 & h && 40 & 28 & g && 62 & 3E & \verb|;| \\
-  19 & 13 & o && 41 & 29 & r && 63 & 3F & End of line \\
+  19 & 13 & o && 41 & 29 & r && 63 & 3F & End of line\textsuperscript{\ddag} \\
   20 & 14 & s && 42 & 2A & 0 &&&& \\
   21 & 15 & i && 43 & 2B & 1 &&&& \\
   \bottomrule
 \end{tabular}
 
-\enquote{Dec.} is the value representation as a decimal (base~10)
+\textsuperscript{\dag}\enquote{Dec.} is the value representation as a decimal (base~10)
 number; \enquote{Hex.} is the value as a hexadecimal (base~16) number.
 
-\enquote{Blank} indicates a visible space; \enquote{End of line} will
+\textsuperscript{\ddag}\enquote{Blank} indicates a visible space; \enquote{End of line} will
 terminate the current line and will move the cursor to the beginning
 of the next. The end of a line is represented by a sequence of
 characters which can change according to the underlying system.
