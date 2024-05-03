@@ -22,9 +22,14 @@
 \usepackage{booktabs}
 \usepackage{longtable}
 \usepackage{array}
+\usepackage{mathtools}
+\usepackage[math-style=ISO,warnings-off={mathtools-color,mathtools-overbracket}]{unicode-math}
+\usepackage{siunitx}
 \usepackage{polyglossia}
 \usepackage[colorlinks,hyperindex]{hyperref}
 \setdefaultlanguage{english}
+
+\DeclareSIUnit{\degreeFahrenheit}{\textdegree{}F}
 
 \author{The Starcnight Initiatibe}
 \title{The Extended AWA5 Programming Language}
@@ -93,7 +98,7 @@ Hello, world!
 \end{verbatim}
 
 Let's now examine the code. Every AWA5 program is written by composing
-together two syllables: \emph{awa} and \emph{wa}; the first syllable
+together two syllables:\,\emph{awa} and\,\emph{wa}; the first syllable
 is to be written in isolation, following any amount of blanks, the
 second one must immediately follow a syllable with no blanks
 inbetween.
@@ -148,10 +153,8 @@ We have a working program and we know why it is written the way it is,
 but we have yet to understand how it is able to understand each
 statement.
 
-As already explained, each statement is written through a series of
-\emph{awa} or \emph{wa} syllables, joined to form words; each word is
-categorized as part of one of two groups: it can either be a
-\emph{command} or a \emph{parameter}.
+Each statement is categorized as part of one of two groups: it can
+either be a \emph{command} or a \emph{parameter}.
 
 Commands are the instructions given to the machine. Our \enquote{Hello
   world} example featured two commands: one to push a value inside the
@@ -174,19 +177,19 @@ with a 1 (one):
 \end{verbatim}
 
 This substitution gives us a representation of a \emph{binary number},
-that is, a number composed only of the digits zero and one. When
-programming, each digit of a binary number is called \emph{bit} and
-the AWA5 language recognizes commands and parameters by examining
-which bits are zero and which are one.
+that is, a number composed only of the digits zero and one. Inside a
+program, each digit of a binary number is called \emph{bit} and the
+AWA5 language recognizes commands and parameters by examining which
+bits are zero and which are one.
 
-Commands are 5-bit values, which means five digits are examined, from
-left to right, to understand which command needs to be executed by the
-machine. In our example, the command is \verb|00101|; converting it to
+Commands are 5-bit values, which means five digits are examined from
+left to right to understand which command needs to be executed by the
+machine. In our example the command is \verb|00101|; converting it to
 a decimal number---the system we normally use when counting---gives us
 the number 5, which correspond to pushing the parameter in the abyss.
 
 If a parameter is required by the command, eight more bits are
-examined to understand the value of said parameter. In our example,
+examined to understand the value of said parameter; in the line above
 the parameter is \verb|00110111| corresponding to the number 55.
 
 Converting each line in our \enquote{Hello world} example to
@@ -206,6 +209,110 @@ back later.) Open the compiled program using an appropriate tool to
 view binary files. Can you recognize the commands you wrote to print
 \verb|Hello, world!|? Try to understand what the contents of the file
 represent.
+
+\section{Abyss Diving}
+The next program converts a temperature expressed in Celsius degrees
+into its Fahrenheit equivalent, using the formula \(F = \frac{9}{5}C + 32\).
+We will try to convert \qty[mode=text]{100}{\degreeCelsius}, the
+boiling point of water, into its Fahrenheit value:
+\verbatiminput{celsius.awa}
+
+Executing the program will tell us the result:
+\qty[mode=text]{212}{\degreeFahrenheit}.
+
+The code is not any more complicated than our \enquote{Hello world},
+but introduces new commands and concepts.
+
+Each line starting with a semicolon is a \emph{comment}, which in this
+case explains what the commands below do. Anything between a semicolon
+and the end of the line is ignored by the compiler, thus comments may
+be used to type any kind of useful information without confusing the
+machine.
+
+The first two instructions are familiar: the program is pushing the
+two values 100 and 9 inside the abyss.
+
+\begin{verbatim}
+awa awawa awawa awawawa awa awawa awa awa
+awa awawa awawa awa awa awa awawa awa awawa
+\end{verbatim}
+
+On the third instruction we find the first new command introduced by
+this program:
+
+\begin{verbatim}
+awawawa awawa
+\end{verbatim}
+
+This operation removes the first two bubbles from the
+abyss and multiplies them, pushing the result inside the abyss; in
+this example the top bubble will be the result of \(100 \times 9\),
+which is 900.
+
+The next few lines instruct the program to divide the top bubble by
+5. However, the number 5 is not simply pushed into the abyss and then
+the division is applied: a comment tells us the program is going to
+\enquote{swap the two bubbles}.
+
+\begin{verbatim}
+awa awawa awawa awa awa awa awa awawa awawa
+; swap the two bubbles
+awa awawawa awa awa awa awa awa awa awa awawa
+awawawawa awa
+\end{verbatim}
+
+This step is required because the top bubble is divided by the bubble
+below; if 5 were to be the top bubble, the operation would've been \(5
+\divslash 900\) instead of \(900 \divslash 5\), which is vastly
+incorrect.
+
+The attentive reader might have noticed that the program is
+calculating \[\frac{9 \times 100}{5}\] instead of following the
+conversion formula.
+
+The AWA5 language operates only on \emph{integer} values which means
+numbers with decimals, like \num{1.8} or \num{3.14159}, cannot be
+stored inside the abyss; the number is \emph{truncated} by dropping
+the fractional part---the digits after the point---instead.
+
+In the conversion formula calculating \(\frac{9}{5}\) would normally
+result in \num{1.8}, but due to truncation it will be just 1, giving
+us \[1 \times 100 + 32 = 132\] which is incorrect.
+
+Moving forward, the program adds 32 to the top bubble in the same
+manner as the earlier multiplication, using the appropriate
+command.
+
+The next line is interesting:
+\begin{verbatim}
+; pop double bubble
+awa awawawawa
+\end{verbatim}
+
+which is required because the division pushed inside the abyss a
+\emph{double bubble}.
+
+A single bubble pushed inside the abyss will contain the given value,
+for example 100, 9 or 5; a double bubble instead comprises other
+bubbles---single or double---and popping one will push each contained
+bubble inside the abyss in the same order: the first bubble inside the
+double bubble will become the top bubble of the abyss.
+
+The bubble pushed by the division command is a double bubble whose
+first item is the quotient, truncated, and the last item is the
+remainder of the division.
+
+Here the quotient is the converted temperature; because printing
+operates only on the top bubble, the double bubble is split into its
+contained bubbles to ensure the remainder does not interfere.
+
+\textbf{Excercise 1-5}. Add a semicolon before the command to pop the
+double bubble. Can you explain what is happening when you execute the
+program? \\
+\textbf{Excercise 1-6}. Take the \enquote{Hello world} program and add
+a command to move the top bubble before printing. Change the parameter
+and see what happens; what does a value of zero do? What if the
+parameter is too big?
 
 \appendix
 \chapter{Reference Material}
