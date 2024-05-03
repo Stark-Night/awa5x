@@ -52,7 +52,11 @@ prn_bubble(struct Bubble bubble) {
 static enum EvalCode
 pr1_bubble(struct Bubble bubble) {
      if (0 == bubble_double(bubble)) {
-          fprintf(stdout, "%d ", bubble.value);
+          if (bubble.value < 0) {
+               fprintf(stdout, "~%d", -bubble.value);
+          } else {
+               fprintf(stdout, "%d", bubble.value);
+          }
 
           return EVAL_OK;
      }
@@ -60,6 +64,10 @@ pr1_bubble(struct Bubble bubble) {
      enum EvalCode code = EVAL_OK;
      for (struct Bubble *b=bubble.head; NULL!=b; b=b->next) {
           code = pr1_bubble(*b);
+
+          if (EVAL_OK == code && NULL != b->next) {
+               fprintf(stdout, " ");
+          }
      }
 
      return code;

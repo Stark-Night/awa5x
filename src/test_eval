@@ -160,7 +160,7 @@ EOF
 ./awa5c ./test-eval-src > ./test-eval-cc
 [ $? != 0 ] && echo 'compile test 8' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
 out=`./awa5 test-eval-cc`
-[ "x$out" != 'x2 ' ] && echo 'run test 8' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
+[ "x$out" != 'x2' ] && echo 'run test 8' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
 rm -f test-eval-src test-eval-cc
 
 cat <<EOF > ./test-eval-src
@@ -318,5 +318,20 @@ EOF
 ./awa5c ./test-eval-src > ./test-eval-cc
 [ $? != 0 ] && echo 'compile test 15' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
 out=`./awa5 test-eval-cc`
-[ "x$out" != 'x16129 ' ] && echo 'run test 15' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
+[ "x$out" != 'x16129' ] && echo 'run test 15' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
+rm -f test-eval-src test-eval-cc
+
+cat <<EOF > ./test-eval-src
+;; test printing 2
+awa
+
+awa awawa awawa ~wawawawawawawawa
+awa awawa awawa ~wawawawawawawawa
+awawa awawa awa
+awa awa awawa awa
+EOF
+./awa5c ./test-eval-src > ./test-eval-cc
+[ $? != 0 ] && echo 'compile test 16' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
+out=`./awa5 test-eval-cc`
+[ "x$out" != 'x~1 ~1' ] && echo 'run test 16' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
 rm -f test-eval-src test-eval-cc
