@@ -314,7 +314,7 @@ a command to move the top bubble before printing. Change the parameter
 and see what happens; what does a value of zero do? What if the
 parameter is too big?
 
-\section{Textual and Numeric Input}
+\section{Textual and Numerical Input}
 So far our programs have worked on values we have specified directly
 inside the code; however, programs often need to work on input
 provided by users.
@@ -338,6 +338,7 @@ values will be prefixed with the \verb|~| symbol: \(-2\) is written as
 \~{}2, for example.
 
 \subsection{Textual input}
+\label{textual-input}
 Let us extend our \enquote{Hello world} program to greet anyone the
 user wishes for. We will first print the \verb|~| character to inform
 the user we wish to obtain a line of AWASCII text, then we will
@@ -370,7 +371,41 @@ find the AWASCII character table in Appendix~\ref{list-of-awascii}. \\
 only one print command. The surrounding command is key.
 
 \subsection{Numerical input}
-% TBC with Celsius example with user input
+We will extend the Celsius-to-Fahrenheit converter to operate on
+numbers provided by the user. Similar to Section~\ref{textual-input},
+the program will print an indicator and wait for a number.
+\verbatiminput{celsius2.awa}
+
+The code should be familiar: first we print the \verb|~| character,
+then we wait for input, finally the sequence of commands to convert
+the temperature is the same as the first version of this program.
+
+It is important to note that numbers are inserted as AWASCII
+characters; therefore, only decimal digits are allowed:
+\begin{verbatim}
+~100
+212
+\end{verbatim}
+\begin{verbatim}
+~0x10
+<some error message.>
+\end{verbatim}
+
+This detail is important when inserting negative numbers: the \verb|-|
+character, normally used to indicate a negative number such as
+\num{-17}, is not part of AWASCII; thus, to provide a negative number
+the \verb|~| character is used instead:
+\begin{verbatim}
+~ -17
+<some error message.>
+\end{verbatim}
+\begin{verbatim}
+~ ~17
+2
+\end{verbatim}
+
+\textbf{Excercise 1-9}. Can you print the result and the end of line
+indicator with a single output command? This is a yes-or-no question.
 
 \appendix
 \chapter{Reference Material}
