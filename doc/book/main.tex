@@ -345,6 +345,30 @@ suspend the program execution until the user provides some valid
 input.
 \verbatiminput{hello3.awa}
 
+The request for input happens at the third command; once a valid line
+of AWASCII character is inserted, the command pushes it inside the
+abyss as a double bubble.
+
+We proceed to insert the greeting---the word \enquote{Hello} followed
+by a comma and a space, like in our first \enquote{Hello world}
+program---and then we print the whole text so far.
+
+Unlike in our first example, we do not use one command for each bubble
+inside the abyss; the printing command is able to operate on double
+bubbles, so we first \emph{surround} the greeting with a double bubble
+and then execute only two printing commands: one to output
+\verb*|Hello, |, the other to output the line provided by the user.
+
+Finally, we push the closing exclamation mark followed by a special
+character indicating the output line has ended. We surround them again
+and print the two characters with a single command.
+
+\textbf{Excercise 1-7}. Run the program and provide input lines with
+characters outside the AWASCII range and see what happens. You can
+find the AWASCII character table in Appendix~\ref{list-of-awascii}. \\
+\textbf{Excercide 1-8}. Modify the program to print the greeting using
+only one print command. The surrounding command is key.
+
 \subsection{Numerical input}
 % TBC with Celsius example with user input
 
