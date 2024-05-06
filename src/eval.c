@@ -177,6 +177,7 @@ eval_r3d(struct Abyss abyss, int8_t parameter) {
           return result;
      }
      bytes = bytes - 1;
+     result.state.exbuffer[bytes] = '\0';
 
      // strtoawa is just strtol where negative numbers start with ~
      // instead of the minus sign; strtol itself is not the best
@@ -185,7 +186,7 @@ eval_r3d(struct Abyss abyss, int8_t parameter) {
      long int cnum = strtoawa(result.state.exbuffer, &tail);
 
      // again we loop until a valid input
-     while (NULL != tail && '\0' != tail[0] && (INT32_MIN > cnum || INT32_MAX < cnum)) {
+     while ((NULL != tail && '\0' != tail[0]) || (INT32_MIN > cnum || INT32_MAX < cnum)) {
           fprintf(stderr, "input out of range\n");
 
           bytes = getline(&(result.state.exbuffer), &(result.state.exsize), stdin);
@@ -194,6 +195,7 @@ eval_r3d(struct Abyss abyss, int8_t parameter) {
                return result;
           }
           bytes = bytes - 1;
+          result.state.exbuffer[bytes] = '\0';
 
           cnum = strtoawa(result.state.exbuffer, &tail);
      }

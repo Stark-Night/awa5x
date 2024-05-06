@@ -273,7 +273,7 @@ parameter_line_check(struct GrowBuffer *line) {
      char *tail = NULL;
      long int cnum = strtoawa(line->bytes, &tail);
 
-     if (NULL != tail && '\0' != tail[0] && (INT8_MIN > cnum || INT8_MAX < cnum)) {
+     if ((NULL != tail && '\0' != tail[0]) || (INT8_MIN > cnum || INT8_MAX < cnum)) {
           fprintf(stderr,
                   "invalid parameter; must be a number: %s\n",
                   line->bytes);
