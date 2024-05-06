@@ -339,12 +339,11 @@ values will be prefixed with the \verb|~| symbol: \(-2\) is written as
 
 \subsection{Textual input}
 Let us extend our \enquote{Hello world} program to greet anyone the
-user wishes for. We will first print the \verb|!| character to inform
+user wishes for. We will first print the \verb|~| character to inform
 the user we wish to obtain a line of AWASCII text, then we will
 suspend the program execution until the user provides some valid
 input.
 \verbatiminput{hello3.awa}
-% TBC with explanation
 
 \subsection{Numerical input}
 % TBC with Celsius example with user input
@@ -507,16 +506,13 @@ chapters in case something is not clear.
   16 & 10 & l && 38 & 26 & d && 60 & 3C & \verb|_| \\
   17 & 11 & y && 39 & 27 & f && 61 & 3D & \verb|/| \\
   18 & 12 & h && 40 & 28 & g && 62 & 3E & \verb|;| \\
-  19 & 13 & o && 41 & 29 & r && 63 & 3F & End of line\textsuperscript{\ddag} \\
+  19 & 13 & o && 41 & 29 & r && 63 & 3F & End of line\textsuperscript{\dag} \\
   20 & 14 & s && 42 & 2A & 0 &&&& \\
   21 & 15 & i && 43 & 2B & 1 &&&& \\
   \bottomrule
 \end{tabular}
 
-\textsuperscript{\dag}\enquote{Dec.} is the value representation as a decimal (base~10)
-number; \enquote{Hex.} is the value as a hexadecimal (base~16) number.
-
-\textsuperscript{\ddag}\enquote{Blank} indicates a visible space; \enquote{End of line} will
+\textsuperscript{\dag}\enquote{Blank} indicates a visible space; \enquote{End of line} will
 terminate the current line and will move the cursor to the beginning
 of the next. The end of a line is represented by a sequence of
 characters which can change according to the underlying system.
