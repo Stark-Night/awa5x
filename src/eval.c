@@ -117,9 +117,11 @@ eval_red(struct Abyss abyss, int8_t parameter) {
           return result;
      }
 
-     // avoids the newline at the end
-     result.state.exbuffer[bytes-1] = '\0';
-     bytes = bytes-1;
+     if (1 < bytes) {
+          // avoids the newline at the end
+          result.state.exbuffer[bytes-1] = '\0';
+          bytes = bytes-1;
+     }
 
      int valid = 0;
      while (0 == valid) {
