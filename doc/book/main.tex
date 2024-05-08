@@ -45,7 +45,7 @@
 \chapter{Introduction to Awatism}
 An old adage says:
 \textquote{The only way to learn a new programming language is by writing programs in it.};
-thus, we'll begin our exploration of the language by presenting some
+we'll begin our exploration of the language by presenting some
 practical programs with the goal of letting you, the reader, reach the
 point where you can write useful programs as quickly as possible.
 
@@ -176,24 +176,24 @@ with a 1 (one):
 0010100110111
 \end{verbatim}
 
-This substitution gives us a representation of a \emph{binary number},
-that is, a number composed only of the digits zero and one. Inside a
-program, each digit of a binary number is called \emph{bit} and the
-AWA5 language recognizes commands and parameters by examining which
-bits are zero and which are one.
+This substitution gives us a representation of a \emph{binary number}:
+a number composed only of the digits zero and one. Inside a program,
+each digit of a binary number is called \emph{bit} and the AWA5
+language recognizes commands and parameters by examining the value of
+each bit.
 
 Commands are 5-bit values, which means five digits are examined from
 left to right to understand which command needs to be executed by the
 machine. In our example the command is \verb|00101|; converting it to
 a decimal number---the system we normally use when counting---gives us
-the number 5, which correspond to pushing the parameter in the abyss.
+the number \num{5}, which correspond to pushing the parameter in the
+abyss.
 
 If a parameter is required by the command, eight more bits are
-examined to understand the value of said parameter; in the line above
-the parameter is \verb|00110111| corresponding to the number 55.
+examined to understand its value; in the line above the parameter is
+\verb|00110111| corresponding to the number \num{55}.
 
-Converting each line in our \enquote{Hello world} example to
-decimal numbers, we get the following:
+Converting each line in our example to decimal numbers gives us:
 \verbatiminput{hello2.awa}
 
 Which number corresponds to which command, and whether or not it
@@ -230,15 +230,14 @@ be used to type any kind of useful information without confusing the
 machine.
 
 The first two instructions are familiar: the program is pushing the
-two values 100 and 9 inside the abyss.
+two values \num{100} and \num{9} inside the abyss.
 
 \begin{verbatim}
 awa awawa awawa awawawa awa awawa awa awa
 awa awawa awawa awa awa awa awawa awa awawa
 \end{verbatim}
 
-On the third instruction we find the first new command introduced by
-this program:
+On the third instruction we find the first new command:
 
 \begin{verbatim}
 awawawa awawa
@@ -247,12 +246,11 @@ awawawa awawa
 This operation removes the first two bubbles from the
 abyss and multiplies them, pushing the result inside the abyss; in
 this example the top bubble will be the result of \(100 \times 9\),
-which is 900.
+which is \num{900}.
 
 The next few lines instruct the program to divide the top bubble by
-5. However, the number 5 is not simply pushed into the abyss and then
-the division is applied: a comment tells us the program is going to
-\enquote{swap the two bubbles}.
+\num{5}. However, the division is not applied immediately: a comment
+tells us the program is going to \enquote{swap the two bubbles}.
 
 \begin{verbatim}
 awa awawa awawa awa awa awa awa awawa awawa
@@ -262,9 +260,9 @@ awawawawa awa
 \end{verbatim}
 
 This step is required because the top bubble is divided by the bubble
-below; if 5 were to be the top bubble, the operation would've been \(5
-\divslash 900\) instead of \(900 \divslash 5\), which is vastly
-incorrect.
+below; if \num{5} were to be the top bubble, the operation would've
+been \(5 \divslash 900\) instead of \(900 \divslash 5\), which is
+vastly incorrect.
 
 The attentive reader might have noticed that the program is
 calculating \[\frac{9 \times 100}{5}\] instead of following the
@@ -272,39 +270,38 @@ conversion formula.
 
 The AWA5 language operates only on \emph{integer} values which means
 numbers with decimals, like \num{1.8} or \num{3.14159}, cannot be
-stored inside the abyss; the number is \emph{truncated} by dropping
+stored inside the abyss; the number is \emph{truncated} by removing
 the fractional part---the digits after the point---instead.
 
 In the conversion formula calculating \(\frac{9}{5}\) would normally
-result in \num{1.8}, but due to truncation it will be just 1, giving
-us \[1 \times 100 + 32 = 132\] which is incorrect.
+result in \num{1.8}, but due to truncation it will be just \num{1}
+giving us \[1 \times 100 + 32 = 132\] which is the wrong result.
 
-Moving forward, the program adds 32 to the top bubble in the same
-manner as the earlier multiplication, using the appropriate
+Afterwards, the program adds \num{32} to the top bubble in the
+same manner as the earlier multiplication, using the appropriate
 command.
 
-The next line is interesting:
+The next line:
 \begin{verbatim}
 ; pop double bubble
 awa awawawawa
 \end{verbatim}
 
-which is required because the division pushed inside the abyss a
+is required because the division pushed inside the abyss a
 \emph{double bubble}.
 
 A single bubble pushed inside the abyss will contain the given value,
-for example 100, 9 or 5; a double bubble instead comprises other
-bubbles---single or double---and popping one will push each contained
-bubble inside the abyss in the same order: the first bubble inside the
-double bubble will become the top bubble of the abyss.
+for example \num{100}, \num{9} or \num{5}; a double bubble instead
+comprises other bubbles---single or double---and popping one will push
+each contained bubble inside the abyss in the same order: the first
+bubble will become the top bubble of the abyss.
 
-The bubble pushed by the division command is a double bubble whose
-first item is the quotient, truncated, and the last item is the
-remainder of the division.
+The result pushed by the division command is a double bubble whose
+first item is the quotient and the last item is the remainder.
 
-Here the quotient is the converted temperature; because printing
-operates only on the top bubble, the double bubble is split into its
-contained bubbles to ensure the remainder does not interfere.
+In our example the quotient is the converted temperature; because
+printing operates only on the top bubble, the double bubble is split
+into its contained values to ensure the remainder does not interfere.
 
 \textbf{Excercise 1-5}. Add a semicolon before the command to pop the
 double bubble. Can you explain what is happening when you execute the
@@ -320,10 +317,10 @@ inside the code; however, programs often need to work on input
 provided by users.
 
 The AWA5 language recognizes two different kind of input and output:
-textual and numeric. In our first example, \enquote{Hello world}, we
-have seen textual ouput where the numbers pushed inside the abyss were
+textual and numeric. In our \enquote{Hello world} example, we have
+seen textual ouput where the numbers pushed inside the abyss were
 printed as letters; in the Celsius to Fahrenheit converter the output
-was numeric, where the quotient was printed as a number.
+was the quotient printed as a number.
 
 Textual input and output operate within the bounds of the AWASCII
 alphabet; any value not inside these bounds will be considered
@@ -339,11 +336,9 @@ values will be prefixed with the \verb|~| symbol: \(-2\) is written as
 
 \subsection{Textual input}
 \label{textual-input}
-Let us extend our \enquote{Hello world} program to greet anyone the
-user wishes for. We will first print the \verb|~| character to inform
-the user we wish to obtain a line of AWASCII text, then we will
-suspend the program execution until the user provides some valid
-input.
+Let's extend our \enquote{Hello world} program to greet anyone the
+user wishes for. We will first print the \verb|~| character and wait
+until the user provides valid text.
 \verbatiminput{hello3.awa}
 
 The request for input happens at the third command; once a valid line
@@ -377,11 +372,11 @@ the program will print an indicator and wait for a number.
 \verbatiminput{celsius2.awa}
 
 The code should be familiar: first we print the \verb|~| character,
-then we wait for input, finally the sequence of commands to convert
-the temperature is the same as the first version of this program.
+then we wait for input; the sequence of commands to convert the
+temperature is the same as the first version of this program.
 
 It is important to note that numbers are inserted as AWASCII
-characters; therefore, only decimal digits are allowed:
+characters; only decimal digits are allowed:
 \begin{verbatim}
 ~100
 212
@@ -393,7 +388,7 @@ characters; therefore, only decimal digits are allowed:
 
 This detail is important when inserting negative numbers: the \verb|-|
 character, normally used to indicate a negative number such as
-\num{-17}, is not part of AWASCII; thus, to provide a negative number
+\num{-17}, is not part of AWASCII; to provide a negative number
 the \verb|~| character is used instead:
 \begin{verbatim}
 ~ -17
