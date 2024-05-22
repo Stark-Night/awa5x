@@ -58,7 +58,7 @@ AS_IF([test "x$enable_awa_tracing" = "xyes"],
 
 have_latex=no
 AS_IF([test "x$enable_book" = "xyes"],
-  [AC_CHECK_PROGS([LATEX], [xelatex lualatex], [no])
+  [AC_CHECK_PROGS([LATEX], [lualatex], [no])
    AS_IF([test "x$LATEX" != "xno"], [have_latex=yes])])
 AM_CONDITIONAL([HAVE_LATEX], [test "x$have_latex" != "xno"])
 
