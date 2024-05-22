@@ -97,6 +97,7 @@ which will print:
 Hello, world!
 \end{verbatim}
 
+\label{awa-bits}
 Let's now examine the code. Every AWA5 program is written by composing
 together two syllables:\,\emph{awa} and\,\emph{wa}; the first syllable
 is to be written in isolation, following any amount of blanks, the
@@ -274,8 +275,8 @@ stored inside the abyss; the number is \emph{truncated} by removing
 the fractional part---the digits after the point---instead.
 
 In the conversion formula calculating \(\frac{9}{5}\) would normally
-result in \num{1.8}, but due to truncation it will be just \num{1}
-giving us \[1 \times 100 + 32 = 132\] which is the wrong result.
+result in \num{1.8}, but due to truncation it will give us \[1 \times
+100 + 32 = 132\] instead, which is the wrong result.
 
 Afterwards, the program adds \num{32} to the top bubble in the
 same manner as the earlier multiplication, using the appropriate
@@ -401,6 +402,70 @@ the \verb|~| character is used instead:
 
 \textbf{Excercise 1-9}. Can you print the result and the end of line
 indicator with a single output command? This is a yes-or-no question.
+
+\section{Repeating Actions}
+Throughout our examples we have always written programs which
+terminate immediately after performing all their instructions. We will
+now extend the temperature converter to keep asking for new values,
+allowing the user to calculate multiple conversions without restarting
+the program between each input.
+\verbatiminput{celsius3.awa}
+
+The code introduces a new syllable: \verb|~wa|, indicating the bit
+has a value of 1. In Section~\ref{awa-bits} we learnt that \verb|wa|,
+the syllable indicating the value 1, must be attached to the previous
+syllable to be valid and therefore it cannot be used at the very start
+of a sequence of bits. The \verb|~wa| syllable allows a starting 1 and
+as such the command \verb|~wa awa awa awa awa| is equivalent to the
+\verb|10000| sequence of bits.
+
+Let's now examine the new commands: the first,
+\verb|~wa awa awa awa awa|, defines a \emph{label} identified by the
+parameter, in this case the value 0. Labels are \enquote{checkpoints}
+inside the code whose purpose is allowing a program to control which
+commands will be executed.
+
+The \verb|~wa awa awa awawa| command instructs the program to
+\emph{jump} to the label specified by the parameter; in our case the
+label 0. Once the program jumps to a label, the next command to be
+executed will be the one specified after the label. In this example,
+the label is defined at the very beginning of the program, resulting
+in the program repeatedly converting user input.
+
+If we try to run the program, we will soon find ourselves in a
+peculiar situation: we cannot stop it without using the facilities
+provided by the underlaying system. Let's modify the program to query
+the user whether or not to convert another number: if an empty line is
+provided, the program will end. The program will use the \verb|!|
+character to notify the user about this choice.
+\verbatiminput{celsius4.awa}
+
+The command requesting user input always pushes a new bubble inside
+the abyss, thus an empty input is represented by a double bubble
+containing a single end of line marker; we push inside the abyss an
+\enquote{empty string} double bubble and compare the top bubble with
+the one below.
+
+The \verb|~wa awa awawa awa| command compares two bubbles to see if
+they are equal. Other commands allow comparing their ordinal
+properties: whether the value of the top bubble is lesser or greater
+than the value of the bubble below. Double bubbles are compared by
+operating on each contained bubble.
+
+When two bubbles satisfy the requested comparison the command that
+follows is executed, otherwise it is ignored. In our example, we
+compare the double bubble we created with the input taken from the
+user: if the input is not empty execution will reach the
+\verb|~wa awa awa awawa| command, jumping back to the beginning. If
+the two bubbles are the same, however, the \verb|~wawawawawa| command
+will be executed, terminating the program immediately.
+
+\textbf{Excercise 1-10}. Change the last example to terminate only if
+the user provides the string \enquote{no}. When the input is
+\enquote{yes} start a new conversion, keep asking otherwise. \\
+\textbf{Excercise 1-11}. Print \enquote{hot} or \enquote{cold} after
+converting the temperature, if the result is above or below \num{0}
+respectively.
 
 \appendix
 \chapter{Reference Material}
