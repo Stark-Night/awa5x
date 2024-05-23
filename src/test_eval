@@ -335,3 +335,30 @@ EOF
 out=`./awa5 test-eval-cc`
 [ "x$out" != 'x~1 ~1' ] && echo 'run test 16' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
 rm -f test-eval-src test-eval-cc
+
+cat <<EOF > ./test-eval-src
+;; test reading 2
+awa
+
+awa awa awawawa
+awawawawawa
+awa awa awawa awa
+EOF
+./awa5c ./test-eval-src > ./test-eval-cc
+[ $? != 0 ] && echo 'compile test 17' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
+out=`printf '\n' | ./awa5 test-eval-cc`
+[ "x$out" != 'x0' ] && echo 'run test 17' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
+rm -f test-eval-src test-eval-cc
+
+cat <<EOF > ./test-eval-src
+;; test reading 3
+awa
+
+awa awa awawawa
+awa awa awawa awa
+EOF
+./awa5c ./test-eval-src > ./test-eval-cc
+[ $? != 0 ] && echo 'compile test 18' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
+out=`printf '' | ./awa5 test-eval-cc`
+[ "x$out" != 'x~1' ] && echo 'run test 18' 1>&2 && rm -f test-eval-src test-eval-cc && exit 1
+rm -f test-eval-src test-eval-cc

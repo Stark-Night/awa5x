@@ -110,17 +110,24 @@ eval_red(struct Abyss abyss, int8_t parameter) {
      result.state = abyss;
 
      ssize_t bytes = getline(&(result.state.exbuffer), &(result.state.exsize), stdin);
-     if (0 > bytes) {
-          // errno should probably be checked here but whatever, users
-          // should send empty strings instead of end-of-file
-          result.code = EVAL_ERROR;
-          return result;
-     }
-
      if (1 < bytes) {
           // avoids the newline at the end
           result.state.exbuffer[bytes-1] = '\0';
           bytes = bytes-1;
+     } else {
+          // just push a single bubble with the end-of-line value;
+          // empty input can be checked by comparing the size of the
+          // top bubble (single bubbles have a size of zero).
+          struct Bubble bubble = { 0 };
+          if (1 == bytes && 0x0A == result.state.exbuffer[0]) {
+               bubble = bubble_wrap(ALPHABET[NALNUM-1]);
+          } else {
+               bubble = bubble_wrap(-1);
+          }
+          result.state = abyss_push(result.state, bubble);
+          result.code = EVAL_NEW_STATE;
+
+          return result;
      }
 
      int valid = 0;

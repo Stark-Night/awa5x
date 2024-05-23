@@ -440,11 +440,21 @@ provided, the program will end. The program will use the \verb|!|
 character to notify the user about this choice.
 \verbatiminput{celsius4.awa}
 
-The command requesting user input always pushes a new bubble inside
-the abyss, thus an empty input is represented by a double bubble
-containing a single end of line marker; we push inside the abyss an
-\enquote{empty string} double bubble and compare the top bubble with
-the one below.
+Users can provide empty lines in two ways: the first is by inserting a
+line containing only an end-of-line marker inside, which can be
+achieved for example by pressing the \enquote{Enter} button on a
+keyboard; the other way is by using facilities provided by the
+underlaying platform to actually send no data at all.
+
+The AWA5 command identifies these two cases through two different
+bubbles: each one is a single bubble and in the first case, an
+end-of-line marker, the value of the bubble is the equivalent AWASCII
+character; otherwise, it is the value \num{-1}.
+
+In this example we do not need to check the reason why the line is
+empty, thus we take the top bubble---the input given by the user---and
+calculate is \emph{count}: single bubbles always have a count of zero,
+while double bubbles have a count higher than zero.
 
 The \verb|~wa awa awawa awa| command compares two bubbles to see if
 they are equal. Other commands allow comparing their ordinal
@@ -454,11 +464,11 @@ operating on each contained bubble.
 
 When two bubbles satisfy the requested comparison the command that
 follows is executed, otherwise it is ignored. In our example, we
-compare the double bubble we created with the input taken from the
-user: if the input is not empty execution will reach the
-\verb|~wa awa awa awawa| command, jumping back to the beginning. If
-the two bubbles are the same, however, the \verb|~wawawawawa| command
-will be executed, terminating the program immediately.
+compare the count of the user input with the number zero: if the input
+is not empty execution jump back to the beginning; otherwise, if the
+top value is a single bubble the input is an empty line and the
+\verb|~wawawawawa| command will be executed, terminating the program
+immediately.
 
 \textbf{Excercise 1-10}. Change the last example to terminate only if
 the user provides the string \enquote{no}. When the input is
