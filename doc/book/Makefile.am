@@ -17,7 +17,9 @@
 if HAVE_LATEX
 dist_doc_DATA = awa5x_book.pdf
 
-awa5x_book.pdf: $(srcdir)/main.tex
+examples = $(shell find . -name '*.awa')
+
+awa5x_book.pdf: $(srcdir)/main.tex $(examples)
 	$(AM_V_GEN)$(LATEX) --interaction=batchmode $<
 	$(AM_V_GEN)$(LATEX) --interaction=batchmode $<
 	$(AM_V_at)mv $(builddir)/main.pdf $(builddir)/awa5x_book.pdf
