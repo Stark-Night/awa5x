@@ -453,20 +453,20 @@ character; otherwise, it is the value \num{-1}.
 
 In this example we do not need to check the reason why the line is
 empty, thus we take the top bubble---the input given by the user---and
-calculate is \emph{count}: single bubbles always have a count of zero,
-while double bubbles have a count higher than zero.
+calculate its \emph{count}: single bubbles always have a count of
+zero, while double bubbles have a count of at least 1.
 
 The \verb|~wa awa awawa awa| command compares two bubbles to see if
 they are equal. Other commands allow comparing their ordinal
 properties: whether the value of the top bubble is lesser or greater
 than the value of the bubble below. Double bubbles are compared by
-operating on each contained bubble.
+comparing each contained bubble.
 
 When two bubbles satisfy the requested comparison the command that
 follows is executed, otherwise it is ignored. In our example, we
 compare the count of the user input with the number zero: if the input
-is not empty execution jump back to the beginning; otherwise, if the
-top value is a single bubble the input is an empty line and the
+is not empty the execution jumps back to the beginning; otherwise, if
+the top value is a single bubble the input is an empty line and the
 \verb|~wawawawawa| command will be executed, terminating the program
 immediately.
 
