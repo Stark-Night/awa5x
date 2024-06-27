@@ -140,6 +140,16 @@ main(int argc, char *argv[]) {
           }
 
 #ifdef OPCODE_TRACING
+          if (NULL != program.abyss.head) {
+               fprintf(stderr,
+                       "{abyss top}[%5d][%1d]     ",
+                       program.abyss.head->value,
+                       bubble_double(*(program.abyss.head)));
+          } else {
+               fprintf(stderr,
+                       "{abyss top}[empty][0]     ");
+          }
+
           if (0 != opcode_has_parameter(program.opcode)) {
                fprintf(stderr,
                        "[%s %d]\n",
