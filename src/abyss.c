@@ -45,6 +45,7 @@ take_free_bubble(struct Abyss abyss) {
      page.state.free = page.bubble->next;
      page.state.used = page.state.used + 1;
 
+     page.bubble->value = 0;
      page.bubble->head = NULL;
      page.bubble->next = NULL;
 
@@ -271,16 +272,20 @@ abyss_move(struct Abyss abyss, uint8_t steps) {
 
      // the uint8_t type allows a step of 255 when using a parameter
      // from the interpeter
+
      struct Bubble *bubble = abyss.head;
      if (NULL == bubble->next) {
           return abyss;
      }
 
+     // detach bubble to move from abyss
      abyss.head = bubble->next;
+     bubble->next = NULL;
 
      if (0 == steps) {
-          struct Bubble *cursor = abyss.head;
+          // bring bubble to bottom of abyss
 
+          struct Bubble *cursor = abyss.head;
           while (NULL != cursor->next) {
                cursor = cursor->next;
           }
@@ -289,17 +294,13 @@ abyss_move(struct Abyss abyss, uint8_t steps) {
           return abyss;
      }
 
-     struct Bubble *prev = NULL;
-     struct Bubble *next = bubble->next;
-     for (int i=steps; i>=0; --i) {
-          if (NULL == next || 0 >= i) {
-               prev->next = bubble;
-               break;
-          }
-
-          prev = next;
-          next = next->next;
+     // move bubble steps-1 positions
+     struct Bubble *cursor = abyss.head;
+     for (uint8_t i=(steps-1); i>0 && NULL!=cursor->next; --i) {
+          cursor = cursor->next;
      }
+     bubble->next = cursor->next;
+     cursor->next = bubble;
 
      return abyss;
 }
