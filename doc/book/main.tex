@@ -477,6 +477,84 @@ the user provides the string \enquote{no}. When the input is
 converting the temperature, if the result is above or below \num{0}
 respectively.
 
+\section{Routines for common actions}
+Sometimes it is necessary to repeat the same code in different parts
+of the program.  Writing these chunks explicitly each time we need
+them quickly gets out of hand, as the size of the program increases
+and making a single change in the repeated code can require modifying
+a large number of parts.
+
+To simplify development it is possible to define
+\emph{routines}---also called \enquote{procedures} or
+\enquote{functions}---consisting in a sequence of actions associated
+with a name.
+
+A routine consist of any number of actions enclosed between two
+commands: the first specifies a name for the routine and behaves in
+the same fashion as the command to define a jump label; the second
+command terminates the routine and we will see how it works in our
+next example.
+
+We will now create a program to count the number of characters given
+as input until the end of the stream is found, which is to say a
+bubble with a value of \num{-1} is pushed by the
+\verb|awa awa awawawa| command. This program can be used, for example,
+to know the size of a file by executing it akin to the following:
+\begin{verbatim}
+awa5 count-characters.wa < celsius3.awa
+502
+\end{verbatim}
+
+In this case, \num{502} is the character count of the third iteration
+of our temperature converter.
+
+The code for this program is larger than our previous examples, but
+that should not intimidate us:
+\verbatiminput{charcount.awa}
+
+Within the loop contained between the label \num{0} and the
+\verb|~wawawawawa| command, the only awatism yet to be introduced is
+\verb|~wawa awa awa awa|.
+
+This command is part of a group of operations using \emph{textual
+labels} as parameters, instead of the usual numeric ones.
+
+Texutal labels are always included between two square brackets---the
+\verb|[| and \verb|]| characters---and represent a sequence of AWASCII
+characters with no limits in its length.  In this example, the first
+textual label we meet is \verb|[ awa awa awa awa awa awa awa awa ]|,
+equivalent to the \verb|[ A ]| sequence.
+
+The primary role of these labels is to allow more checkpoints than the
+limit of \num{255} the \verb|~wa awa awa awa awa| command has. It is
+possible to rewrite every instance of numerical labels and jumps to
+use textual labels and jumps, at the cost of making the code more
+verbose due to AWASCII.
+
+Unlike a normal textual jump, specified by the \verb|~wa awawawawa|
+command, here we use a \emph{routine call}. Unlike normal jumps,
+routines keep track of the place where the jump happened, allowing the
+program to jump back there without the need of a second label.
+
+The \verb|[ A ]| routine reads a line of input and places the size of
+the bubble on top of the abyss. For simplicity, the actual input line
+is moved to the bottom of the abyss.  In order to ensure the program
+can quit if the line is empty, the top bubble is compared with the
+value \num{-1}: if the two are not equal, the program continues as
+expected; the routine stops immediately otherwise.
+
+In both cases, execution resumes from the point after the routine call
+thanks to the \verb|~wawa awa awawa| command.
+
+\textbf{Excercise 1-12}. What happens if the \verb|~wawawawawa|
+command is removed? What if the routine was placed at the beginning of
+the file? You should be able to answer without executing the
+program. \\
+\textbf{Excercise 1-13}. Combine what you have learned so far to write
+a simple calculator: ask for two numbers, then a value between \num{1}
+and \num{4}; this value is associated with a routine performing a
+basic arithmetic operation of your choice. Quit with the value \num{-1}.
+
 \appendix
 \chapter{Reference Material}
 \section{Introduction}
