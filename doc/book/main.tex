@@ -962,4 +962,26 @@ chapters in case something is not clear.
 terminate the current line and will move the cursor to the beginning
 of the next. The end of a line is represented by a sequence of
 characters which can change according to the underlying system.
+
+\chapter{What is being extended}
+This book describes the \emph{extended} AWA5 programming language. The
+original AWA5.0 language has less commands and, in a way, is more
+limited than its extended counterpart.
+
+In no particular order, the major differences are:
+\begin{itemize}
+\item the \textbf{EQZ}, \textbf{TLB}, \textbf{JTL}, \textbf{CLL} and
+  \textbf{RET} commands are not available in the original version,
+  including the lack of textual labels;
+\item except for the \textbf{BLO} command, in the original version
+  parameters are also \num{5} bits;
+\item in the extended version, double bubbles are always compared
+  recursively, resulting in positive responses in places where the
+  reference implementation would give a negative answer. The
+  specifications does not explicitly define which behaviour is
+  correct;
+\item the extended version explicitly define how empty input is given
+  to the program, the original version leaves it unspecified and the
+  reference implementation does not handle it.
+\end{itemize}
 \end{document}
