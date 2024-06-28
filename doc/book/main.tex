@@ -85,6 +85,8 @@ using the \emph{awa5x} suite of tools, create a file named
 awa5c hello.awa > hello.wa
 \end{verbatim}
 
+You can read more about the awa5x suite in Chapter~\ref{awa5x-suite}.
+
 If all went well, the compilation process will silently generate a
 file called \verb|hello.wa|. This file is our \enquote{Hello world}
 program and it can be run as follows:
@@ -673,6 +675,124 @@ would be written, respectively, as:
   awa awa awa awa awa awa awawa
   awa awa awa awa awa awa awa awa ]
 \end{verbatim}
+
+\chapter{The awa5x suite}
+\label{awa5x-suite}
+Like with many languages, programs written in AWA5 cannot be executed
+directly by the circuitry of a computing device, at least for the time
+being. It is therefore necessary to use specific tools allowing
+systems to run these programs. Aside from a small number of
+illustrative examples, this book does not make any assumption on which
+tools the reader is using.
+
+To ensure everyone is able to follow through its contents, especially
+the tutorial in Chapter~1, this book comes together with a suite of
+tools to work with AWA5 code.
+
+\section{Workflow}
+The suite has two goals: the first is to provide simple and easy to
+use tools, so that only essential instructions on how to run them are
+to be learned; the second goal is to ensure programs run as fast and
+efficiently as possible while being reasonably portable between
+different platforms.
+
+The first goal is accomplished by making the user interface uniform:
+tools are executed at a command prompt and take one parameter in the
+form of the path to the file to operate on. The result is always
+written to the standard output stream provided by the underlying
+system. There are no flags or options to configure.
+
+The second goal is attempted by \emph{compiling} the AWA5 code into a
+byte-oriented file format. Instead of reading each awatism and
+obtaining a command or parameter from it, each instruction is decoded
+ahead of time and the execution platform just needs to read the raw
+value of each byte, a much faster operation. This format is designed
+to be portable between different systems and hardware.
+
+\section{The compiler}
+Programs are compiled with the \textbf{awa5c} tool.
+
+The compiler will read each awatism and substitute it with their byte
+representation in the resulting output. Commands are immediately
+followed by their parameter if they take one; labels are converted to
+the instruction address they associate with, instead of using the
+value of the label. Thus, for each command the compiler can generate
+one, two or five bytes.
+
+The compiler does not preserve comments, thus even though commands and
+labels can be recovered from the output, comments can not.
+
+Other than the sequence of bytes encoding each command, the compiler
+generates a \enquote{header} with informations about the program. This
+header always begin with the following sequence of hexadecimal values:
+\begin{verbatim}
+0x00 0x41 0x57 0x41 0x35 0x30 0x0D 0x0A
+\end{verbatim}
+
+The order and meaning of the other fields of the header can change
+between versions of the suite, thus they will be temporarily omitted
+until a formal specification is agreed upon.
+
+\section{The virtual machine}
+A compiled program can be executed using the \textbf{awa5} tool.
+
+The tool will keep running until one of these conditions are met:
+\begin{itemize}
+\item the \textbf{TRM} command is executed;
+\item the end of the code section is reached;
+\item the operating system terminated the program, for example the
+  *NIX signal SIGINT.
+\end{itemize}
+
+When \textbf{RED} or \textbf{R3D} is executed, values are taken from
+the system's standard input. If the tool was executed from a command
+prompt, this means letters and numbers can be given directly from the
+console.
+
+\textbf{PRN} and \textbf{PR1} output values to the system's standard
+output stream. Unless the tool has been started from a command prompt,
+the contents of this stream might not be shown to the user.
+
+Errors and warnings are placed in the system's standard error
+stream. The destination of this stream changes from system to system,
+but under a command prompt it is usually displayed together with the
+standard output stream.
+
+\section{The preprocessor}
+To help with development of complex programs, the awa5x suite provides
+a preprocessor: \textbf{awa5p}.
+
+The tool can generate AWA5 code according to
+\emph{directives}. Directives are a sequence of one ore more
+character, usually followed by a parameter. Parameter must immediately
+follow the directive, adding spaces or other blanks will result in
+errors.
+
+The \textbf{\#} directive transform a command name into its associated
+awatism. For example, the directive \verb|#BLO| will generate
+\verb|awa awawa awawa|.
+
+It is possible to copy the contents of other files with the \textbf{>}
+directive. This directive will search the path given as parameter and
+will try to insert the contents of the file inside the input. If the
+file further contains preprocessor directives, the program will try to
+execute them.
+
+The preprocessor is unable to detect circular inclusion, therefore
+care must be taken not to generate an infinite loop of file inclusion.
+
+Additionally, the tool will search relative paths starting from the
+directory the program is executed from, thus if we run inside the
+directory \verb|~/awa5/| the directive \verb|>./code| will try to
+include the file at \verb|~/awa5/code|.
+
+In addition to directives, the preprocessor can transform numbers into
+awa\-tisms as long as they can be represented with \num{8} bits.
+
+Textual labels are always defined using AWASCII characters enclosed in
+square brackets. The \verb|[ A ]| and
+\verb|[ awa awa awa awa awa awa awa awa ]| labels are \emph{not} the
+same even though the latter is the awatism encoding of the former.
 
 \appendix
 \chapter{Reference Material}
