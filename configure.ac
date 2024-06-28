@@ -15,7 +15,7 @@ dnl You should have received a copy of the GNU General Public License
 dnl along with this program.  If not, see <https://www.gnu.org/licenses/>.
 AC_PREREQ([2.71])
 
-AC_INIT([awa5x], [2.0.1], [starknightawawa@gmail.com])
+AC_INIT([awa5x], [2.1.0], [starknightawawa@gmail.com])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIRS([m4])
 AC_CONFIG_SRCDIR([src/awa5.c])

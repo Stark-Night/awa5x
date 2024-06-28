@@ -275,6 +275,17 @@
 
           <p>The <code>RET</code> opcode (hexadecimal value <code>0x19</code>) will jump back to the last saved address, no matter what happened in the meantime, removing it from the stack. This save-and-restore flow is commonly referred to as &quot;function calling&quot;.</p>
         </section>
+
+        <section aria-labelledby="empty-input">
+          <h2 id="empty-input">Handling of empty input strings</h2>
+
+          <p>The <code>RED</code> opcode can, in some cases, receive an empty string as input. The original specification leaves does not speak of this case and the reference implementation does not handle it, effectively resulting in a bug.</p>
+          <p>Empty input can be legitimate under certain conditions, thus to ensure programs can handle these cases the virtual machine places a single bubble on top of the abyss with a different value, based on how the empty string was received:</p>
+          <ul>
+            <li>if the input is only an end-of-line marker, the single bubble will contain the marker as its value;</li>
+            <li>when the string has a size of zero, like sending <code>^D</code> from a shell, the single bubble will have a value of -1. This case is common when reading input from a file.</li>
+          </ul>
+        </section>
       </section>
 
       <section aria-labelledby="compiling">
