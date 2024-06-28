@@ -555,6 +555,125 @@ a simple calculator: ask for two numbers, then a value between \num{1}
 and \num{4}; this value is associated with a routine performing a
 basic arithmetic operation of your choice. Quit with the value \num{-1}.
 
+\chapter{Commands and Types}
+A program written in the extended AWA5 language is composed of three
+fundamental types: commands, numerical values and textual labels.
+Execution is carried on by commands; numerical values are the data
+objects manipulated by commands in the form of \enquote{bubbles};
+textual labels are special markers used by specific commands.
+
+\section{Basic commands}
+Most commands perform only one operation without interfering with the
+normal execution of the program. These commands usually perform
+changes to the abyss like adding or removing bubbles.
+
+To add and remove bubbles, use the \textbf{BLO}, \textbf{DPL} and
+\textbf{POP} commands. \textbf{SRN} and \textbf{MRG} modify existing
+bubbles, altering the contents of the abyss without pushing anything
+inside. The \textbf{SBM} command moves the topmost bubble to a lower
+position inside the abyss; this command modifies the abyss without
+adding or removing bubbles, too.
+
+Usage of \textbf{PRN} or \textbf{PR1} results in bubbles being removed
+from the abyss, with the primary side effect of displaying the
+contents of those bubbles to the user, as appropriate.  \textbf{RED}
+and \textbf{R3D} alter the abyss by pushing new bubbles inside,
+requesting their values from the user.
+
+\section{Arithmetic commands}
+Certain commands perform basic arithmetic operations: summation,
+difference, multiplication and division. Unlike basic commands, the
+result of the operation can be complex or different than
+expectation. These commands always take two bubbles out of the abyss
+and push a new bubble inside. This bubble is the result of the
+operation.
+
+When at least one of the two bubbles is double, the operation is
+recursively applied to each bubble contained within.
+
+\textbf{4DD} and \textbf{MUL} perform as expected: the two bubbles are
+added or multiplied together. The \textbf{SUB} command subtracts the
+second bubble from the first; the formula \(A - B\) must therefore be
+executed as the sequence:
+\begin{verbatim}
+BLO A
+BLO B
+SUB
+\end{verbatim}
+
+The result of the \textbf{DIV} command is always a double bubble in
+which the first bubble is the quotient and the second is the
+remainder. Applying division to double bubbles result in double
+bubbles containing other double bubbles, recursively.
+
+\section{Execution flow}
+It is possible to change which command would be executed
+next. Conceptually, the program has an \emph{instruction pointer}, or
+IP, which is incremented by one each time a command is executed. Once
+the IP reaches the end of the code section, the program terminates.
+
+The \textbf{JMP} and \textbf{JTL} command change the IP to a different
+value specified by the \textbf{LBL} and \textbf{TLB} commands. To
+create a label for \textbf{JMP} use \textbf{LBL}; to create a label
+for \textbf{JTL} use \textbf{TLB}.
+
+Comparisons made using \textbf{EQL}, \textbf{LSS}, \textbf{GR8} and
+\textbf{EQZ} can alter the flow by incrementing the IP by one if the
+comparison holds, skipping the command that follows immediately after.
+
+\textbf{CLL} works like \textbf{JTL}, but preserves the IP before
+making the jump. The program can resume execution from the stored IP
+with a jump performed by the \textbf{RET} command.
+
+Programs can stop execution altogether with the \textbf{TRM}
+command. Reaching this command terminates every activity, irrespective
+of what follows.
+
+\section{Numerical values}
+Programs written in AWA5 can operate only on one type of data: integer
+numbers between \num{-2147483648} and \num{2147483647}, for a total of
+\num{32} bits of information.
+
+When used as a parameter of a command a numerical value can be
+represented in only eight bits, meaning the range is limited to
+\num{-128} and \num{127}.
+
+Certain commands do not accept negative values, thus their ranges are
+between \num{0} and \num{4294967295} as a \num{32}-bit value, or
+\num{0} and \num{255} as an \num{8}-bit value.
+
+Numerical values can be used to define \emph{numerical labels}: the
+value will be associated with a position inside the code section of
+the program; using the same value as a parameter of the \textbf{JMP}
+command will result in the instruction pointer moving to the
+registered position, before stepping forward to the next command.
+
+\section{Textual labels}
+Certain operations do not take a numerical value as a parameter,
+requiring a sequence of AWASCII character encoded as awatisms,
+instead. This sequence must be enclosed withing square brackets.
+
+A sequence abiding these rules is a \emph{textual label} and it is an
+extension to numerical label to permit a program to use more than
+\num{255} labels.
+
+Textual labels can have any length as long as the characters within
+are encoded as awatisms. The list of valid AWASCII can be found in
+Appendix~\ref{list-of-awascii}.
+
+Thus, the sequences \verb|[ A ]|, \verb|[ AW ]| and \verb|[ AWA ]|
+would be written, respectively, as:
+\begin{verbatim}
+[ awa awa awa awa awa awa awa awa ]
+
+[ awa awa awa awa awa awa awa awa
+  awa awa awa awa awa awa awawa ]
+
+[ awa awa awa awa awa awa awa awa
+  awa awa awa awa awa awa awawa
+  awa awa awa awa awa awa awa awa ]
+\end{verbatim}
+
 \appendix
 \chapter{Reference Material}
 \section{Introduction}
