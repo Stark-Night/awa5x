@@ -87,4 +87,10 @@ eval_gr8(struct Abyss abyss, int8_t parameter);
 struct EvalResult
 eval_eqz(struct Abyss abyss, int8_t parameter);
 
+struct EvalResult
+eval_ldo(struct Abyss abyss, int8_t parameter);
+
+struct EvalResult
+eval_cdo(struct Abyss abyss, int8_t parameter);
+
 #endif

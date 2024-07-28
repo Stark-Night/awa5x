@@ -23,6 +23,7 @@
 #include "eval.h"
 #include "abyss.h"
 #include "strtoawa.h"
+#include "extern.h"
 
 #ifndef HAVE_GETLINE
 #include "getline.h"
@@ -413,5 +414,51 @@ eval_eqz(struct Abyss abyss, int8_t parameter) {
 
      int value = bubble_zero(*(result.state.head));
      result.code = (0 == value) ? EVAL_NO : EVAL_YES;
+     return result;
+}
+
+struct EvalResult
+eval_ldo(struct Abyss abyss, int8_t parameter) {
+     struct EvalResult result = { 0 };
+     result.code = EVAL_OK;
+     result.state = abyss;
+
+     if (NULL == result.state.head) {
+          result.code = EVAL_ERROR;
+          return result;
+     }
+
+     struct ExternResult value = load_dyn(result.state);
+     if (EXTERN_NO == value.code) {
+          result.code = EVAL_ERROR;
+          return result;
+     }
+
+     result.code = EVAL_NEW_STATE;
+     result.state = value.state;
+
+     return result;
+}
+
+struct EvalResult
+eval_cdo(struct Abyss abyss, int8_t parameter) {
+     struct EvalResult result = { 0 };
+     result.code = EVAL_OK;
+     result.state = abyss;
+
+     if (NULL == result.state.head) {
+          result.code = EVAL_NO;
+          return result;
+     }
+
+     struct ExternResult value = call_dyn(result.state);
+     if (EXTERN_NO == value.code) {
+          result.code = EVAL_ERROR;
+          return result;
+     }
+
+     result.code = EVAL_NEW_STATE;
+     result.state = value.state;
+
      return result;
 }

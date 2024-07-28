@@ -19,13 +19,14 @@ check_PROGRAMS = test_utf8 test_opcodes test_abyss \
 	test_hash test_grow test_gap test_aline test_strtoawa
 noinst_LIBRARIES = libutf8.a libopcodes.a libabyss.a libeval.a \
 	libfilemap.a libhash.a libgrow.a libgap.a libaline.a \
-	libstrtoawa.a
+	libstrtoawa.a libextern.a
 
 EXTRA_DIST = utf8.h opcodes.h abyss.h eval.h filemap.h \
-	hash.h grow.h gap.h aline.h strtoawa.h
+	hash.h grow.h gap.h aline.h strtoawa.h extern.h
 
 awa5_SOURCES = awa5.c
-awa5_LDADD = libfilemap.a libopcodes.a libabyss.a libeval.a libstrtoawa.a
+awa5_LDADD = libfilemap.a libopcodes.a libabyss.a \
+	libeval.a libstrtoawa.a libextern.a
 
 awa5c_SOURCES = awa5c.c
 awa5c_LDADD = libfilemap.a libutf8.a libgrow.a libhash.a libgap.a libopcodes.a
@@ -34,7 +35,8 @@ awa5p_SOURCES = awa5p.c
 awa5p_LDADD = libfilemap.a libutf8.a libgrow.a libopcodes.a libstrtoawa.a
 
 awa5d_SOURCES = awa5d.c
-awa5d_LDADD = libfilemap.a libopcodes.a libabyss.a libeval.a libstrtoawa.a libaline.a
+awa5d_LDADD = libfilemap.a libopcodes.a libabyss.a \
+	libeval.a libstrtoawa.a libaline.a libextern.a
 
 if !HAVE_GETLINE
 awa5_LDADD += ../vendors/libglgetline.a
@@ -58,6 +60,7 @@ libgrow_a_SOURCES = grow.c
 libgap_a_SOURCES = gap.c
 libaline_a_SOURCES = aline.c
 libstrtoawa_a_SOURCES = strtoawa.c
+libextern_a_SOURCES = extern.c
 
 if !HAVE_GETLINE
 libeval_a_CFLAGS = -I../vendors/

@@ -55,6 +55,10 @@
 #define CLL 0x18
 #define RET 0x19
 
+// runtime load and jumps
+#define LDO 0x1A
+#define CDO 0x1B
+
 // this is the last valid opcode
 #define TRM 0x1F
 

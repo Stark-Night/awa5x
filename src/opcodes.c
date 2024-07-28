@@ -48,6 +48,7 @@ opcode_name(int8_t opcode) {
      case JTL: return "JTL";
      case CLL: return "CLL";
      case RET: return "RET";
+     case LDO: return "LDO";
      case TRM: return "TRM";
      default:
           break;
