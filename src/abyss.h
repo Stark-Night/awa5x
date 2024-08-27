@@ -82,6 +82,9 @@ abyss_div(struct Abyss abyss);
 struct Abyss
 abyss_visualize(struct Abyss abyss, FILE *stream);
 
+struct Abyss
+abyss_external(struct Abyss abyss, int64_t *list, uint32_t size);
+
 struct Bubble
 bubble_wrap(int32_t value);
 

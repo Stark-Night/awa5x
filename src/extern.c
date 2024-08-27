@@ -392,9 +392,6 @@ call_dyn(struct Abyss abyss) {
      }
 
      struct Entry *entry = find_entry(libname->buffer);
-     fprintf(stderr, "%s %s\n",
-             (char *)(libname->buffer),
-             (char *)(callname->buffer));
      if (0 == entry->loaded) {
           // programming error somewhere, die to be loud about it
           abort();
@@ -437,7 +434,9 @@ call_dyn(struct Abyss abyss) {
      result.state = abyss_big_pop(result.state);
 
      if (0 != retsize && NULL != retbuf) {
-          // push result into abyss somehow
+          result.state = abyss_external(result.state,
+                                        retbuf,
+                                        retsize);
      }
 
      return result;

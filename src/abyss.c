@@ -31,6 +31,11 @@ struct Page {
      struct Abyss state;
 };
 
+struct Inflatable {
+     struct Page page;
+     uint32_t examined;
+};
+
 static struct Page
 take_free_bubble(struct Abyss abyss) {
      struct Page page = { 0 };
@@ -628,8 +633,8 @@ apply_div_op(struct Abyss abyss, struct Bubble *b1, struct Bubble *b2) {
           quotient = page.bubble;
 
           ldiv_t qr = ldiv(b1->value, b2->value);
-          reminder->value = qr.rem;
-          quotient->value = qr.quot;
+          reminder->value = (int32_t)qr.rem;
+          quotient->value = (int32_t)qr.quot;
 
           quotient->next = reminder;
           head->head = quotient;
@@ -734,7 +739,7 @@ abyss_div(struct Abyss abyss) {
 static int
 bubble_visualize(struct Bubble *bubble, FILE *stream) {
      if (0 == bubble_double(*bubble)) {
-          return fprintf(stream, "[0x%x]\n", bubble->value);
+          return fprintf(stream, "(0x%x)\n", bubble->value);
      }
 
      int res = 0;
@@ -758,6 +763,100 @@ abyss_visualize(struct Abyss abyss, FILE *stream) {
      fprintf(stream, "}\n");
 
      return abyss;
+}
+
+static struct Inflatable
+inflate_bubble(struct Abyss abyss, int64_t *buffer, uint32_t size) {
+     struct Inflatable page = { 0 };
+     page.page.state = abyss;
+
+     page.page = take_free_bubble(page.page.state);
+     struct Bubble *top = page.page.bubble;
+     struct Bubble *cursor = NULL;
+
+     uint32_t index = 1;
+     while (index < size && INT64_MAX != buffer[index]) {
+          if (INT64_MIN != buffer[index]) {
+               if (INT32_MIN > buffer[index] || INT32_MAX < buffer[index]) {
+                    fprintf(stderr, "external value too large\n");
+               } else {
+                    if (NULL == top->head) {
+                         page.page = take_free_bubble(page.page.state);
+                         top->head = page.page.bubble;
+                         top->head->value = (int32_t)(buffer[index]);
+
+                         cursor = top->head;
+                    } else {
+                         page.page = take_free_bubble(page.page.state);
+                         cursor->next = page.page.bubble;
+                         cursor = cursor->next;
+
+                         cursor->value = (int32_t)(buffer[index]);
+                    }
+               }
+
+               index = index + 1;
+
+               continue;
+          }
+
+          page = inflate_bubble(page.page.state,
+                                buffer + index,
+                                size - index);
+
+          if (NULL == top->head) {
+               top->head = page.page.bubble;
+
+               cursor = top->head;
+          } else {
+               cursor->next = page.page.bubble;
+               cursor = cursor->next;
+          }
+
+          index = index + page.examined + 1;
+     }
+
+     page.page.bubble = top;
+     page.examined = index;
+
+     return page;
+}
+
+struct Abyss
+abyss_external(struct Abyss abyss, int64_t *list, uint32_t size) {
+     struct Page page = { 0 };
+     page.state = abyss;
+
+     if (0 == size) {
+          return page.state;
+     }
+
+     if (1 == size) {
+          if (INT32_MIN > list[0] || INT32_MAX < list[0]) {
+               fprintf(stderr, "external value too large\n");
+          } else {
+               struct Bubble b = bubble_wrap((int32_t)(list[0]));
+               return abyss_push(page.state, b);
+          }
+
+          return page.state;
+     }
+
+     if (INT64_MIN != list[0] || INT64_MAX != list[size-1]) {
+          fprintf(stderr, "improper external value\n");
+          return page.state;
+     }
+
+     struct Inflatable expand = { 0 };
+     expand.page = page;
+
+     expand = inflate_bubble(expand.page.state, list, size);
+     struct Bubble *top = expand.page.bubble;
+
+     top->next = expand.page.state.head;
+     expand.page.state.head = top;
+
+     return expand.page.state;
 }
 
 struct Bubble

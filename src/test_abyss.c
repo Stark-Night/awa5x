@@ -128,5 +128,31 @@ main(int argc, char *argv[]) {
 
      abyss = abyss_drop(abyss);
 
+     int64_t testbuf[] = {
+          INT64_MIN,
+          13,
+          24,
+          INT64_MIN,
+          33,
+          18,
+          12,
+          INT64_MAX,
+          87,
+          99,
+          INT64_MAX,
+     };
+
+     abyss = abyss_external(abyss, testbuf, 11);
+     abort_when(NULL == abyss.head);
+     abort_when(NULL == abyss.head->head);
+     abort_when(13 != abyss.head->head->value);
+     abort_when(24 != abyss.head->head->next->value);
+     abort_when(NULL == abyss.head->head->next->next->head);
+     abort_when(33 != abyss.head->head->next->next->head->value);
+     abort_when(87 != abyss.head->head->next->next->next->value);
+     abort_when(99 != abyss.head->head->next->next->next->next->value);
+
+     abyss = abyss_drop(abyss);
+
      return 0;
 }
