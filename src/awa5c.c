@@ -313,10 +313,10 @@ main(int argc, char *argv[]) {
                     cbuffers.output = gap_append(cbuffers.output, &value, 1);
                     cbuffers.outcursor = cbuffers.outcursor + 1;
 
-                    if (JMP == value) {
+                    if (5 == cvalue.target && JMP == value) {
                          cstatus.label_use = 1;
                     }
-                    if (JTL == value || CLL == value) {
+                    if (5 == cvalue.target && (JTL == value || CLL == value)) {
                          cstatus.text_label_use = 1;
                     }
                }
