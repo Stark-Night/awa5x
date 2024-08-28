@@ -409,7 +409,7 @@ call_dyn(struct Abyss abyss) {
 
      external_fn_t *external_fn = NULL;
 #if defined(_WIN64) || defined(_WIN32) || defined(__MINGW32__) || defined(__MINGW64__)
-     external_fn = GetProcAddress(entry->handle, callname);
+     external_fn = (external_fn_t *)GetProcAddress(entry->handle, callname->buffer);
 #else
      external_fn = dlsym(entry->handle, callname->buffer);
 #endif
