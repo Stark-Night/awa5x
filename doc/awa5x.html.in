@@ -182,12 +182,15 @@
                 <li><a href="#differences-tools">Tools and development flow</a></li>
                 <li><a href="#differences-flow">Program flow control</a></li>
                 <li><a href="#differences-function">Jumps with return to caller</a></li>
+                <li><a href="#differences-empty">Handling of empty input strings</a></li>
+                <li><a href="#differences-external">Foreign function interface</a></li>
               </ol>
             </li>
             <li><a href="#compiling">Compiling AWA5.0 programs</a></li>
             <li><a href="#executing">Executing compiled AWA5.0 programs</a></li>
             <li><a href="#preprocessor">The awa5p preprocessor</a></li>
             <li><a href="#debugger">The awa5d debugger</a></li>
+            <li><a href="#foreign-functions">Executing foreign functions</a></li>
             <li><a href="#gnu-free-documentation-license">GNU Free Documentation License</a></li>
           </ol>
         </nav>
@@ -223,6 +226,8 @@
             <li><code>JTL</code></li>
             <li><code>CLL</code></li>
             <li><code>RET</code></li>
+            <li><code>LDO</code></li>
+            <li><code>CDO</code></li>
           </ul>
         </section>
 
@@ -276,15 +281,28 @@
           <p>The <code>RET</code> opcode (hexadecimal value <code>0x19</code>) will jump back to the last saved address, no matter what happened in the meantime, removing it from the stack. This save-and-restore flow is commonly referred to as &quot;function calling&quot;.</p>
         </section>
 
-        <section aria-labelledby="empty-input">
-          <h2 id="empty-input">Handling of empty input strings</h2>
+        <section aria-labelledby="differences-empty">
+          <h2 id="differences-empty">Handling of empty input strings</h2>
 
-          <p>The <code>RED</code> opcode can, in some cases, receive an empty string as input. The original specification leaves does not speak of this case and the reference implementation does not handle it, effectively resulting in a bug.</p>
+          <p>The <code>RED</code> opcode can, in some cases, receive an empty string as input. The original specification does not speak of this case and the reference implementation does not handle it, effectively resulting in a bug.</p>
           <p>Empty input can be legitimate under certain conditions, thus to ensure programs can handle these cases the virtual machine places a single bubble on top of the abyss with a different value, based on how the empty string was received:</p>
           <ul>
             <li>if the input is only an end-of-line marker, the single bubble will contain the marker as its value;</li>
             <li>when the string has a size of zero, like sending <code>^D</code> from a shell, the single bubble will have a value of -1. This case is common when reading input from a file.</li>
           </ul>
+        </section>
+
+        <section aria-labelledby="differences-external">
+          <h2 id="differences-external">Foreign function interface</h2>
+
+          <p>The <code>LDO</code> opcode (hexadecimal value <code>0x1A</code>) will load a shared object into the currently executing virtual machine. Shared objects are commonly called &ldquo;libraries&rdquo;, &ldquo;DLLs&rdquo;, &ldquo;plugins&rdquo; and sometimes &ldquo;FFI&rdquo;.</p>
+          <p>The opcode will take a double bubble containing the full name of the object to load. Unfortunately, different platforms have different rules and it is thus recommended to follow these guidelines:</p>
+          <ul>
+            <li>On Microsoft&reg; Windows&reg; simply push the name of the shared object, the system's loader will scan the current directory first;</li>
+            <li>On systems using <code>dlopen</code> (most POSIX&trade; platforms) push the name of the shared object and then provide a &ldquo;launcher script&rdquo; where the <code>LD_LIBRARY_PATH</code> environment variable is set to the absolute path of the object to load.</li>
+          </ul>
+
+          <p>The <code>CDO</code> opcode (hexadecimal value <code>0x1B</code>) will execute a function from an external object loaded through the use of the <code>LDO</code> opcode. See <a href="#foreign-functions">Executing foreign functions</a> for details.</p>
         </section>
       </section>
 
@@ -428,6 +446,45 @@ input.awc: input.awa
         </table>
 
         <p>When the command to visualize the abyss is issued, each bubble will be displayed as its value in hexadecimal notation surrounded by square brackets (UTF-8 points <code>0x5B</code> and <code>0x5D</code>); double bubbles will be displayed as following: first a line containing a single open square bracket, followed by the display of each contained bubble, then finally a single line containing a single closed square bracket.</p>
+      </section>
+
+      <section aria-labelledby="foreign-functions">
+        <h1 id="foreign-functions">Executing foreign functions</h1>
+
+        <p>The <code>CDO</code> opcode (hexadecimal value <code>0x1B</code>) will execute a function from a shared object loaded with <code>LDO</code>. The opcode requires a double bubble whose contents are, in order of insertion (first-in-last-out):</p>
+        <ul>
+          <li>A double bubble which will be passed to the function as argument;</li>
+          <li>The name of the function as a double bubble;</li>
+          <li>The name of the loaded object as a double bubble.</li>
+        </ul>
+
+        <p>The function must have a signature equivalent to the following C declaration:</p>
+        <pre>int external_function(int64_t *in, uint32_t in_size, int64_t **out, uint32_t *out_size);</pre>
+
+        <p>The parameters are as follow:</p>
+        <ul>
+          <li><code>*in</code> is an array whose contents codify as explained later the double bubble given as argument;</li>
+          <li><code>in_size</code> is the number of elements in <code>*in</code>;</li>
+          <li><code>**out</code> is a pointer to be filled with the starting address of an array whose contents codify a double bubble as explained later;</li>
+          <li><code>*out_size</code> is a pointer to be filled with the number of elements in <code>**out</code>.</li>
+        </ul>
+
+        <p>The return value is used to indicate whether an unrecoverable error has occurred: if the value is non-zero, the virtual machine will stop execution of the program.</p>
+
+        <p>To ensure compatibility between different systems, bubbles are &ldquo;flattened&rdquo; into a linear array according to these rules:</p>
+        <ul>
+          <li>A single bubble is codified as its value;</li>
+          <li>A double bubble is codified according to these steps:
+            <ol>
+              <li>The value of <code>INT64_MIN</code> starts the double bubble encoding;</li>
+              <li>Each contained bubble is codified according to these rules recursively;</li>
+              <li>The value of <code>INT64_MAX</code> ends the double bubble encoding.</li>
+            </ol>
+          </li>
+        </ul>
+
+        <p><strong>Please note</strong>: due to a design bug, the array provided by the function (i.e. the value of <code>**out</code>) will be pushed inside the abyss in reverse order compared to the array provided as input (i.e. <code>*in</code>). For example, the input bubble <code>[1, 2, 3]</code> will be codified as <code>&lt;INT64_MIN, 3, 2, 1, INT64_MAX&gt;</code>, but the output array <code>&lt;INT64_MIN, 1, 2, 3, INT64_MAX&gt;</code> will be pushed into the abyss as the double bubble <code>[1, 2, 3]</code>.</p>
+        <p>Ensure the array provided as output is not dynamically allocated, regardless of the presence of a garbage collector or equivalent, as the virtual machine does not handle it past pushing its contents on the abyss and there is a high chance of leaking memory.</p>
       </section>
 
       <section aria-labelledby="gnu-free-documentation-license">
