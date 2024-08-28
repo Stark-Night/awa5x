@@ -1,3 +1,8 @@
+2024-08-28 Stark Night <starknightawawa@gmail.com>
+	* 3.0.0
+	Loading and execution of functions from external objects
+	Patch a misdetection during compilation
+
 2024-06-28 Stark Night <starknightawawa@gmail.com>
 	* 2.1.0
 	Change how empty input strings are passed to programs
