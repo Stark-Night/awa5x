@@ -83,7 +83,7 @@ next_power(uint32_t n) {
 static int
 grow_alloc_cache(struct AllocCache *cache, uint32_t expected) {
      if (NULL == cache->allocs) {
-          cache->allocs = malloc(1024 * sizeof(struct Alloc));
+          cache->allocs = calloc(1024, sizeof(struct Alloc));
           if (NULL == cache->allocs) {
                // out of memory, let's just crash...
                abort();
@@ -114,6 +114,10 @@ grow_alloc_cache(struct AllocCache *cache, uint32_t expected) {
      if (NULL == cache->allocs) {
           // out of memory, let's just crash...
           abort();
+     }
+
+     for (uint32_t i=cache->capacity; i<newcap; ++i) {
+          cache->allocs[i].used = 0;
      }
 
      cache->capacity = newcap;
@@ -253,14 +257,20 @@ fill_bubble_vector(struct Bubble *bubble, struct Alloc *alloc) {
           return 0;
      }
 
+     buffer[0] = INT64_MIN;
+
+     buffer = buffer + 1;
      for (struct Bubble *b=bubble->head; NULL!=b; b=b->next) {
           buffer = flatten_bubble(b, buffer);
      }
+     buffer = buffer + 1;
+
+     buffer[0] = INT64_MAX;
 
      return 0;
 }
 
-struct BubbleVector
+static struct BubbleVector
 make_bubble_vector(struct Bubble *bubble) {
      uint32_t count = count_bubble_vector(bubble);
 
@@ -405,6 +415,9 @@ call_dyn(struct Abyss abyss) {
 #endif
 
      if (NULL == external_fn) {
+          fprintf(stderr,
+                  "cannot find symbol %s\n",
+                  (char *)callname->buffer);
           result.code = EXTERN_NO;
           return result;
      }
