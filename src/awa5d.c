@@ -499,6 +499,12 @@ main(int argc, char *argv[]) {
                          program.counter = address - 1;
                     }
                     break;
+               case LDO:
+                    program.result = eval_ldo(program.abyss, program.parameter);
+                    break;
+               case CDO:
+                    program.result = eval_cdo(program.abyss, program.parameter);
+                    break;
                case TRM:
                     program.result.code = EVAL_OK;
                     program.counter = file_contents.capacity;
