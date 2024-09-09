@@ -22,8 +22,6 @@ charcount.awa
 CLEANFILES = awa5x_book.pdf main.aux main.log main.toc
 
 if HAVE_LATEX
-dist_doc_DATA = awa5x_book.pdf
-
 examples = $(shell find . -name '*.awa')
 
 awa5x_book.pdf: $(srcdir)/main.tex $(examples)
