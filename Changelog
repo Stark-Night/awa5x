@@ -1,3 +1,8 @@
+2024-09-09 Stark Night <starknightawawa@gmail.com>
+	* 3.0.1
+	Preprocessor and debugger can now handle the new v3.0.0 opcodes.
+	Expanded the README
+
 2024-08-28 Stark Night <starknightawawa@gmail.com>
 	* 3.0.0
 	Loading and execution of functions from external objects
