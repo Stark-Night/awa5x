@@ -6,6 +6,7 @@ extensions to make certain operations easier to reason about.
 awa5 - execute compiled bytecode
 awa5c - compile awatisms into bytecode
 awa5p - process human-readable awatalk into awatisms
+awa5d - debug execution of compiled bytecode
 
 How to build:
 It is assumed a UNIX-like environment; building has not been tested on
@@ -20,3 +21,12 @@ If the configure script does not exist, it can be generated using the
 The built programs can be installed with 'make install'.  It will
 require administrator privileges unless a user-writable path is given
 through the '--prefix' option of the 'configure' script.
+
+Running the tools:
+These programs assume a command-line environment.
+
+On UNIX-like system this is commonly known as "the terminal" or and
+can be provided by tools like 'xterm', 'rxvt', or 'st'.
+
+On Microsoft Windows systems, PowerShell is the recommended
+environment under which the awa5x should be used.
